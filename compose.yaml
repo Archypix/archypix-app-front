@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+  archypix-app-front:
+    build: .
+    image: archypix-app-front
+    container_name: archypix-app-front
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - NUXT_PUBLIC_BACKEND_HOST=$NUXT_PUBLIC_BACKEND_HOST
+      - NUXT_PUBLIC_BACKEND_HOST_SSR=$NUXT_PUBLIC_BACKEND_HOST_SSR

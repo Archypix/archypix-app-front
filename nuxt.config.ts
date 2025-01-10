@@ -1,3 +1,5 @@
+import Aura from '@primevue/themes/aura';
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     runtimeConfig: {
@@ -25,13 +27,21 @@ export default defineNuxtConfig({
     ],
 
     modules: [
-        'nuxt-primevue',
+        '@primevue/nuxt-module',
         '@pinia/nuxt',
         '@vueuse/nuxt',
     ],
 
     primevue: {
         options: {
+            theme: {
+                preset: Aura,
+                options: {
+                    prefix: '',
+                    darkModeSelector: 'system',
+                    cssLayer: true
+                }
+            },
             ripple: true,
         }
     },
@@ -42,7 +52,6 @@ export default defineNuxtConfig({
 
     css: [
         'assets/css/common.styl',
-        'primevue/resources/themes/aura-light-green/theme.css',
         'primeicons/primeicons.css'
     ],
 

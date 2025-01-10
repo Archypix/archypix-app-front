@@ -60,7 +60,7 @@ export const useUserStore = defineStore('user', () => {
 
     // Methods
     const isLoggedIn = (accept_unconfirmed: boolean = false, accept_banned: boolean = false) => {
-        return status.value == UserStatus.Normal
+        return status.value == UserStatus.Normal ||  status.value == UserStatus.Admin
             || (accept_unconfirmed && status.value == UserStatus.Unconfirmed)
             || (accept_banned && status.value == UserStatus.Banned)
     }

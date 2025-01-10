@@ -157,5 +157,7 @@ const onCancelConfirm = () => {
 </template>
 
 <style scoped lang="stylus">
-
+main div.p-message {
+  margin: 1em 0;
+}
 </style>

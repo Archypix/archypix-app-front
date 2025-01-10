@@ -115,9 +115,9 @@ nav
         color var(--text-color)
 
         border-radius .5rem
-        background-color var(--surface-ground)
-        border 1px solid var(--surface-border)
+        background-color var(--surface-0)
+        border 1px solid var(--surface-300)
 
         &:hover
-          background-color var(--surface-hover)
+          background-color var(--surface-50)
 </style>

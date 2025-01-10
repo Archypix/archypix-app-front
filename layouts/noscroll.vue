@@ -36,7 +36,7 @@
   margin-bottom 1em
 
 :deep(main)
-  background-color white;
+  background-color  var(--surface-0);
   padding 10px
   padding-top 40px
   flex-basis 100%;

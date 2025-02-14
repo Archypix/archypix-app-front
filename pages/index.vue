@@ -64,8 +64,16 @@
           </template>
         </Toolbar>
 
-        <img alt="Logo" src="https://primefaces.org/cdn/primevue/images/nature/nature2.jpg" class="rounded-lg drop-shadow-2xl"/>
-
+        <template v-for="pid in pictures" :key="pid">
+          <Card>
+            <template #title>
+              Picture {{ pid }}
+            </template>
+            <template #content>
+              <img alt="Logo" src="https://primefaces.org/cdn/primevue/images/nature/nature2.jpg" class="rounded-md drop-shadow-sm"/>
+            </template>
+          </Card>
+        </template>
 
       </SplitterPanel>
       <SplitterPanel :size="10" :maxSize="50">
@@ -111,7 +119,7 @@ const cities = ref([
 
 const fetchAllPictures = async (deleted = false) => {
   try {
-    await useGetApi(true, `/pictures?deleted=${deleted}`)
+    await useGetApi(true, '/pictures?deleted=' + deleted)
         // @ts-ignore cause ts wants type void | ..., but it's AuthStatus
         .then((data: number[]) => {
           pictures.value = data || []

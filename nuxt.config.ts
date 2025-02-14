@@ -50,7 +50,7 @@ export default defineNuxtConfig({
                 options: {
                     prefix: '',
                     darkModeSelector: '',
-                    cssLayer: { name: "primeui", order: "tailwind-base, tailwind-utilities, primeui, primevue, archypix;", }
+                    cssLayer: { name: "primeui", order: "tailwind-base, primeui, primevue, tailwind-utilities, archypix;", }
                 }
             },
             ripple: true,

@@ -14,7 +14,11 @@ if (!user.isLoggedIn()) {
 </script>
 
 <style scoped>
-* {
-  background-color: blue;
+
+</style>
+
+<style>
+html {
+  overflow: hidden;
 }
 </style>

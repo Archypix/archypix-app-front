@@ -1,3 +1,55 @@
+<script setup lang="ts">
+import type {ApiError} from "~/composables/fetchApi";
+import PicturesList from "~/components/app/PicturesList.vue";
+
+definePageMeta({
+  layout: 'app'
+})
+
+export type ListPictureData = {
+  id: number,
+  name: string,
+  width: number,
+  height: number,
+}
+
+const searchQuery = ref('')
+const pictures = ref<ListPictureData[]>([])
+
+const selectedCities = ref();
+const cities = ref([
+  {name: 'New York', code: 'NY'},
+  {name: 'Rome', code: 'RM'},
+  {name: 'London', code: 'LDN'},
+  {name: 'Istanbul', code: 'IST'},
+  {name: 'Paris', code: 'PRS'}
+]);
+
+const fetchAllPictures = async (deleted = false) => {
+  try {
+    await useGetApi(false, '/pictures?deleted=' + deleted)
+        // @ts-ignore cause ts wants type void | ..., but it's AuthStatus
+        .then((data: ListPictureData[]) => {
+          pictures.value = data || []
+        })
+        .catch((error: ApiError | null) => {
+          if (error && error.error_type === ErrorType.Unauthorized) {
+
+          } else {
+
+          }
+        })
+  } catch (err) {
+    console.error('Unexpected error:', err)
+  }
+}
+
+const searchPictures = async () => {
+  // Implement search functionality
+  console.log('Searching for:', searchQuery.value)
+}
+</script>
+
 <template>
   <main>
     <Splitter class="h-screen border-none rounded-none">
@@ -42,7 +94,7 @@
           </TabPanels>
         </Tabs>
       </SplitterPanel>
-      <SplitterPanel>
+      <SplitterPanel class="flex flex-col">
         <Toolbar>
           <template #start>
             <Button icon="pi pi-plus" class="mr-2" severity="secondary" text/>
@@ -64,16 +116,8 @@
           </template>
         </Toolbar>
 
-        <template v-for="pid in pictures" :key="pid">
-          <Card>
-            <template #title>
-              Picture {{ pid }}
-            </template>
-            <template #content>
-              <img alt="Logo" src="https://primefaces.org/cdn/primevue/images/nature/nature2.jpg" class="rounded-md drop-shadow-sm"/>
-            </template>
-          </Card>
-        </template>
+        <PicturesList :list_pictures_data="pictures"/>
+
 
       </SplitterPanel>
       <SplitterPanel :size="10" :maxSize="50">
@@ -96,51 +140,6 @@
     </Splitter>
   </main>
 </template>
-
-<script setup lang="ts">
-import type {ApiError} from "~/composables/fetchApi";
-import {type AuthStatus, UserStatus} from "~/stores/user";
-
-definePageMeta({
-  layout: 'app'
-})
-
-const searchQuery = ref('')
-const pictures = ref<number[]>([])
-
-const selectedCities = ref();
-const cities = ref([
-  {name: 'New York', code: 'NY'},
-  {name: 'Rome', code: 'RM'},
-  {name: 'London', code: 'LDN'},
-  {name: 'Istanbul', code: 'IST'},
-  {name: 'Paris', code: 'PRS'}
-]);
-
-const fetchAllPictures = async (deleted = false) => {
-  try {
-    await useGetApi(true, '/pictures?deleted=' + deleted)
-        // @ts-ignore cause ts wants type void | ..., but it's AuthStatus
-        .then((data: number[]) => {
-          pictures.value = data || []
-        })
-        .catch((error: ApiError | null) => {
-          if (error && error.error_type === ErrorType.Unauthorized) {
-
-          } else {
-
-          }
-        })
-  } catch (err) {
-    console.error('Unexpected error:', err)
-  }
-}
-
-const searchPictures = async () => {
-  // Implement search functionality
-  console.log('Searching for:', searchQuery.value)
-}
-</script>
 
 <style scoped>
 .splitter {

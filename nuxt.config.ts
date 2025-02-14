@@ -1,4 +1,5 @@
 import Aura from '@primevue/themes/aura';
+// import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -30,7 +31,17 @@ export default defineNuxtConfig({
         '@primevue/nuxt-module',
         '@pinia/nuxt',
         '@vueuse/nuxt',
+        '@nuxtjs/tailwindcss'
     ],
+
+    vite: {
+        plugins: [
+            // tailwindcss(),
+        ],
+        css: {
+            preprocessorOptions: {}
+        }
+    },
 
     primevue: {
         options: {
@@ -39,7 +50,7 @@ export default defineNuxtConfig({
                 options: {
                     prefix: '',
                     darkModeSelector: '',
-                    cssLayer: true
+                    cssLayer: { name: "primeui", order: "tailwind-base, tailwind-utilities, primeui, primevue, archypix;", }
                 }
             },
             ripple: true,
@@ -51,15 +62,10 @@ export default defineNuxtConfig({
     },
 
     css: [
-        'assets/css/common.styl',
-        'primeicons/primeicons.css'
+        '@/assets/css/common.styl',
+        'primeicons/primeicons.css',
+        '@/assets/css/tailwind.css'
     ],
-
-    vite: {
-        css: {
-            preprocessorOptions: {}
-        }
-    },
 
     routeRules: {
         // Client-side only

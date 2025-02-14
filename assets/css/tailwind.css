@@ -1,0 +1,16 @@
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@layer tailwind-base {
+    @tailwind base;
+}
+
+@layer tailwind-utilities {
+    @tailwind components;
+    @tailwind utilities;
+}
+
+@layer archypix {
+    html, button, input, optgroup, select, textarea {
+        line-height: normal;
+    }
+}

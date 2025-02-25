@@ -37,6 +37,7 @@ export enum ErrorType {
 export type ApiError = {
     error_type: ErrorType
     message: string
+    rollback: boolean
 }
 export type HttpError = {
     statusCode: number
@@ -85,7 +86,8 @@ export const useFetchApi = async function <B, R>(ssr: boolean = false, method: s
                 console.error('useFetchApi', 'Unknown error:', error.value?.statusCode, error.value?.statusMessage, error)
                 error_data = {
                     error_type: ErrorType.CantReachApi,
-                    message: 'Unable to reach the API, please try again later'
+                    message: 'Unable to reach the API, please try again later',
+                    rollback: true
                 }
             } else {
                 console.log('useFetchApi', 'Known error:', error_data.error_type, '-', error_data.message)

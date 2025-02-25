@@ -1,5 +1,6 @@
 import type {Ref} from "vue";
 import type {ApiError} from "~/composables/fetchApi";
+import {useToastService} from "~/composables/useToastService";
 
 export enum UserStatus {
     Unconfirmed = 'Unconfirmed',
@@ -130,6 +131,7 @@ export const useUserStore = defineStore('user', () => {
                         auth_token.value = null
                     } else {
                         status.value = UserStatus.Unknown
+                        useToastService().apiError(error, "Unable to check login status");
                     }
                 })
         } else {

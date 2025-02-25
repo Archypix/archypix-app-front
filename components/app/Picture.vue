@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {ApiError} from "~/composables/fetchApi";
 import {useElementVisibility} from '@vueuse/core'
+import {useToastService} from "~/composables/useToastService";
 
 
 const props = defineProps(['list_picture_data'])
@@ -23,11 +24,7 @@ watchEffect(() => {
           }
         })
         .catch((error: ApiError | null) => {
-          if (error && error.error_type === ErrorType.Unauthorized) {
-
-          } else {
-
-          }
+          useToastService().apiError(error, "Unable to fetch picture " + props.list_picture_data.id);
         });
   }
 })
@@ -45,9 +42,10 @@ const thumbStyle = reactive({
 </script>
 
 <template>
-    <li ref="target" :class="{thumb: !loading, loading: loading}" :style="liStyle">
-      <div class="thumb rounded-md drop-shadow-sm" :style="thumbStyle" />
-    </li>
+  <Toast />
+  <li ref="target" :class="{thumb: !loading, loading: loading, 'bg-slate-200': true}" :style="liStyle">
+    <div class="thumb rounded-md drop-shadow-sm" :style="thumbStyle" />
+  </li>
 </template>
 
 <style scoped lang="stylus">

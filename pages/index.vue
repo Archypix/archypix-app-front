@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {ApiError} from "~/composables/fetchApi";
 import PicturesList from "~/components/app/PicturesList.vue";
+import {useToastService} from "~/composables/useToastService";
 
 definePageMeta({
   layout: 'app'
@@ -33,11 +34,7 @@ const fetchAllPictures = async (deleted = false) => {
           pictures.value = data || []
         })
         .catch((error: ApiError | null) => {
-          if (error && error.error_type === ErrorType.Unauthorized) {
-
-          } else {
-
-          }
+          useToastService().apiError(error, "Unable to fetch pictures list");
         })
   } catch (err) {
     console.error('Unexpected error:', err)

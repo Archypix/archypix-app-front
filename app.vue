@@ -2,7 +2,7 @@
 await useUserStore().updateStatus()
 
 useHead({
-  titleTemplate: '%s | Archypix',
+  titleTemplate: 'Archypix',
   meta: [
     {
       name: 'description',

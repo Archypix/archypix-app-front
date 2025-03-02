@@ -26,9 +26,50 @@ const cities = ref([
   {name: 'Paris', code: 'PRS'}
 ]);
 
+// Type definition for pictures query
+enum PictureFilterType {
+  Arrangement = "Arrangement",
+  Group = "Group",
+  Deleted = "Deleted",
+  Owned = "Owned",
+  TagGroup = "TagGroup",
+  Tag = "Tag",
+}
+
+interface PicturesQuery {
+  filters: PictureFilter[];
+  sorts: PictureSort[];
+  page: number;
+}
+
+interface PictureFilter {
+  type: PictureFilterType;
+  invert: boolean;
+  ids?: number[];
+}
+
+enum PictureSortType {
+  CreationDate = "CreationDate",
+  EditionDate = "EditionDate",
+}
+
+interface PictureSort {
+  type: PictureSortType;
+  ascend: boolean;
+}
+
 const fetchAllPictures = async (deleted = false) => {
+  const query: PicturesQuery = {
+    filters: [
+      { type: PictureFilterType.Deleted, invert: !deleted},
+    ],
+    sorts: [
+      { type: PictureSortType.CreationDate, ascend: false },
+    ],
+    page: 1,
+  };
   try {
-    await useGetApi(false, '/pictures?deleted=' + deleted)
+    await usePostApi(false, '/pictures', query)
         // @ts-ignore cause ts wants type void | ..., but it's AuthStatus
         .then((data: ListPictureData[]) => {
           pictures.value = data || []

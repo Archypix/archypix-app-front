@@ -117,8 +117,7 @@ export const useUserStore = defineStore('user', () => {
         // id = useCookie('px_user_id')
         // auth_token = useCookie('px_auth_token')
         if (id.value && auth_token.value) {
-            await useGetApi(true, '/auth/status')
-                // @ts-ignore cause ts wants type void | AuthStatus but it's AuthStatus
+            await useGetApi<AuthStatus>(true, '/auth/status')
                 .then((data: AuthStatus) => {
                     status.value = data.status
                     name.value = data.name

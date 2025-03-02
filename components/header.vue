@@ -67,6 +67,11 @@ header
   @media screen and (min-width: 800px)
     padding 0 5rem
 
+  h2
+    font-size 1.5rem
+    margin 0
+    color var(--primary-800)
+
   h2 span
     font-size .8rem
     color var(--primary-800)

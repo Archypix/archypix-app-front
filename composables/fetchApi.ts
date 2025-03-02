@@ -52,10 +52,10 @@ export const useGetApi = async function <R>(ssr: boolean = false, path: string) 
     return await useFetchApi<undefined, R>(ssr, 'GET', user.auth_token, user.id, path, undefined)
 }
 
-export const usePostApi = async function <B, R>(ssr: boolean = false, path: string, data: any) {
+export const usePostApi = async function <B, R>(ssr: boolean = false, path: string, body: B) {
 
     let user = useUserStore()
-    return await useFetchApi<B, R>(ssr, 'POST', user.auth_token, user.id, path, data)
+    return await useFetchApi<B, R>(ssr, 'POST', user.auth_token, user.id, path, body)
 }
 
 export const useFetchApi = async function <B, R>(ssr: boolean = false, method: string, auth_token: string | null | undefined,

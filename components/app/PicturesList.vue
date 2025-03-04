@@ -1,12 +1,16 @@
 <script setup lang="ts">
 
+import {usePicturesStore} from "~/stores/pictures";
+
 let props = defineProps(['list_pictures_data'])
+
+let pictures_store = usePicturesStore()
 
 </script>
 
 <template>
   <ul>
-    <Picture :list_picture_data="data" v-for="data in list_pictures_data" :key="data.id"/>
+    <Picture :list_picture_data="data" v-for="data in pictures_store.pictures" :key="data.id"/>
   </ul>
 </template>
 

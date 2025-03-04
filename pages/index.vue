@@ -2,20 +2,11 @@
 import type {ApiError} from "~/composables/fetchApi";
 import PicturesList from "~/components/app/PicturesList.vue";
 import {useToastService} from "~/composables/useToastService";
+import {PictureFilterType, PictureSortType, type PicturesQuery, usePicturesStore} from "~/stores/pictures";
 
 definePageMeta({
   layout: 'app'
 })
-
-export type ListPictureData = {
-  id: number,
-  name: string,
-  width: number,
-  height: number,
-}
-
-const searchQuery = ref('')
-const pictures = ref<ListPictureData[]>([])
 
 const selectedCities = ref();
 const cities = ref([
@@ -26,41 +17,15 @@ const cities = ref([
   {name: 'Paris', code: 'PRS'}
 ]);
 
-// Type definition for pictures query
-enum PictureFilterType {
-  Arrangement = "Arrangement",
-  Group = "Group",
-  Deleted = "Deleted",
-  Owned = "Owned",
-  TagGroup = "TagGroup",
-  Tag = "Tag",
-}
-
-interface PicturesQuery {
-  filters: PictureFilter[];
-  sorts: PictureSort[];
-  page: number;
-}
-
-interface PictureFilter {
-  type: PictureFilterType;
-  invert: boolean;
-  ids?: number[];
-}
-
-enum PictureSortType {
-  CreationDate = "CreationDate",
-  EditionDate = "EditionDate",
-}
-
-interface PictureSort {
-  type: PictureSortType;
-  ascend: boolean;
-}
 
 const fetchAllPictures = async (deleted = false) => {
   const query: PicturesQuery = {
     filters: [
+      { type: PictureFilterType.Tag, invert: false, ids: [1] },
+      { type: PictureFilterType.Tag, invert: false, ids: [2, 1] },
+      { type: PictureFilterType.Tag, invert: false, ids: [2] },
+      { type: PictureFilterType.TagGroup, invert: true, ids: [2] },
+      { type: PictureFilterType.TagGroup, invert: false, ids: [1] },
       { type: PictureFilterType.Deleted, invert: !deleted},
     ],
     sorts: [
@@ -68,24 +33,9 @@ const fetchAllPictures = async (deleted = false) => {
     ],
     page: 1,
   };
-  try {
-    await usePostApi(false, '/pictures', query)
-        // @ts-ignore cause ts wants type void | ..., but it's AuthStatus
-        .then((data: ListPictureData[]) => {
-          pictures.value = data || []
-        })
-        .catch((error: ApiError | null) => {
-          useToastService().apiError(error, "Unable to fetch pictures list");
-        })
-  } catch (err) {
-    console.error('Unexpected error:', err)
-  }
+  await usePicturesStore().query(query);
 }
 
-const searchPictures = async () => {
-  // Implement search functionality
-  console.log('Searching for:', searchQuery.value)
-}
 </script>
 
 <template>
@@ -154,7 +104,7 @@ const searchPictures = async () => {
           </template>
         </Toolbar>
 
-        <PicturesList :list_pictures_data="pictures"/>
+        <PicturesList/>
 
 
       </SplitterPanel>

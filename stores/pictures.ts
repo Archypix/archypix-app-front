@@ -1,8 +1,3 @@
-import {defineStore} from 'pinia';
-import type {ApiError} from "~/composables/fetchApi";
-import {useToastService} from "~/composables/useToastService";
-import {build_query, convertQueryComponentToNames, parse_query, queryComponentsToString} from "~/composables/queryFiles";
-
 // Type definition for pictures query
 export interface PicturesQuery {
     filters: PictureFilter[];
@@ -45,19 +40,26 @@ export type ListPictureData = {
 export const usePicturesStore = defineStore('pictures', () => {
 
     const pictures = ref<ListPictureData[]>([])
+    const loading = ref<boolean>(false)
     const query_string = ref<string>('')
+    const query_string_names = ref<string>('')
+    const query_string_ids = ref<string>('')
     const page = ref<number>(1)
 
     // Methods
-    const query = async (query_string: string, page: number) => {
+    const query = async (query_str: string, page: number) => {
+        loading.value = true;
         console.log("Query:", query_string, "Page:", page);
-        const components = parse_query(query_string);
-        console.log("Parsed query:", components);
+        const components = parse_query(query_str);
+
+        query_string.value = query_str;
+        query_string_names.value = queryComponentsToString(convertQueryComponentToNames(components));
+        query_string_ids.value = queryComponentsToString(convertQueryComponentToIds(components));
 
         const query = build_query(components, page)
         console.log("Built query:", query);
-        console.log("Stringified query:", queryComponentsToString(convertQueryComponentToNames(components)));
         await fetch(query)
+        loading.value = false;
     }
     const fetch = async (query: PicturesQuery) => {
         await usePostApi<PicturesQuery, ListPictureData[]>(false, '/query_pictures', query)
@@ -71,6 +73,11 @@ export const usePicturesStore = defineStore('pictures', () => {
 
     return {
         pictures,
+        loading,
+        query_string,
+        query_string_names,
+        query_string_ids,
+        page,
         query,
     }
 });

@@ -1,9 +1,5 @@
 <script setup lang="ts">
 
-import {usePicturesStore} from "~/stores/pictures";
-
-let props = defineProps(['list_pictures_data'])
-
 let pictures_store = usePicturesStore()
 
 </script>

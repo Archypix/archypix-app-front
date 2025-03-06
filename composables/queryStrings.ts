@@ -14,8 +14,20 @@ export const parse_query = (query_string: string): QueryComponent[] => {
     for (const pair of pairs) {
         let [key, selector_values] = pair.split('=', 2); // Works because key can’t be quoted.
         console.log("key:", key, "selector_values:", selector_values);
+
+        // Process invert
+        let invert = false;
+        if (key.startsWith('!')) {
+            invert = true;
+            key = key.substring(1);
+        }
+
         if (!selector_values) {
-            console.warn("No value for query pair:", pair)
+            components.push({
+                invert,
+                key,
+                values: [],
+            });
             continue
         }
 
@@ -37,12 +49,6 @@ export const parse_query = (query_string: string): QueryComponent[] => {
             if (isNaN(int_val)) return unquoteString(value);
             else return int_val;
         });
-        // Process invert
-        let invert = false;
-        if (key.startsWith('!')) {
-            invert = true;
-            key = key.substring(1);
-        }
 
         components.push({
             invert,
@@ -52,7 +58,6 @@ export const parse_query = (query_string: string): QueryComponent[] => {
         });
 
     }
-
     return components;
 };
 
@@ -82,7 +87,7 @@ export const build_query = (query_components: QueryComponent[], page: number): P
             sorts.push(sort);
         } else {
             if (values.some(id => isString(id))) {
-                console.warn("Invalid arrangement ID in query component:", component);
+                console.warn("Invalid ID in query component:", component);
                 continue;
             }
             const ids = values.map(id => id as number);
@@ -162,7 +167,7 @@ export const queryComponentsToString = (components: QueryComponent[]): string =>
         let selector_str = selector ? `${quoteIfNeeded(selector)}:` : '';
         let values_str = values.map(value => quoteIfNeeded(value)).join(',');
 
-        return `${invert ? '!' : ''}${key}=${selector_str}${values_str}`;
+        return `${invert ? '!' : ''}${key}${values_str ? '=' : ''}${selector_str}${values_str}`;
     }).join(' ');
 }
 

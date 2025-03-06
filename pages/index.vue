@@ -19,21 +19,7 @@ const cities = ref([
 
 
 const fetchAllPictures = async (deleted = false) => {
-  const query: PicturesQuery = {
-    filters: [
-      { type: PictureFilterType.Tag, invert: false, ids: [1] },
-      { type: PictureFilterType.Tag, invert: false, ids: [2, 1] },
-      { type: PictureFilterType.Tag, invert: false, ids: [2] },
-      { type: PictureFilterType.TagGroup, invert: true, ids: [2] },
-      { type: PictureFilterType.TagGroup, invert: false, ids: [1] },
-      { type: PictureFilterType.Deleted, invert: !deleted},
-    ],
-    sorts: [
-      { type: PictureSortType.CreationDate, ascend: false },
-    ],
-    page: 1,
-  };
-  await usePicturesStore().query(query);
+  await usePicturesStore().query("!sort=creation", 1);
 }
 
 </script>

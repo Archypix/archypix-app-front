@@ -2,6 +2,7 @@
 import type {ApiError} from "~/composables/fetchApi";
 import {useElementVisibility} from '@vueuse/core'
 import {useToastService} from "~/composables/useToastService";
+import {load} from "yaml-ast-parser";
 
 
 const props = defineProps(['list_picture_data'])
@@ -16,16 +17,18 @@ const targetIsVisible = useElementVisibility(target, {
 watchEffect(() => {
   if (loading.value && targetIsVisible.value) {
     console.log('Fetching picture ' + props.list_picture_data.id + '...')
-    useGetApi<Blob>(false, '/picture/' + props.list_picture_data.id + '/medium')
-        .then(response => {
-          if (response && target && target.value) {
-            loading.value = false
-            thumbStyle["background-image"] = `url(${URL.createObjectURL(response)})`
-          }
-        })
-        .catch((error: ApiError | null) => {
-          useToastService().apiError(error, "Unable to fetch picture " + props.list_picture_data.id);
-        });
+    setTimeout(() => {
+      useGetApi<Blob>(false, '/picture/' + props.list_picture_data.id + '/medium')
+          .then(response => {
+            if (response && target && target.value) {
+              loading.value = false
+              thumbStyle["background-image"] = `url(${URL.createObjectURL(response)})`
+            }
+          })
+          .catch((error: ApiError | null) => {
+            useToastService().apiError(error, "Unable to fetch picture " + props.list_picture_data.id);
+          });
+    }, 100)
   }
 })
 
@@ -44,7 +47,11 @@ const thumbStyle = reactive({
 <template>
   <Toast />
   <li ref="target" :class="{thumb: !loading, loading: loading, 'bg-slate-200': true}" :style="liStyle">
-    <div class="thumb rounded-md drop-shadow-sm" :style="thumbStyle" />
+    <div class="thumb rounded-md drop-shadow-sm" :style="thumbStyle">
+      <template v-if="loading">
+        <Skeleton width="100%" height="100%" border-radius="2px"></Skeleton>
+      </template>
+    </div>
   </li>
 </template>
 
@@ -53,9 +60,8 @@ const thumbStyle = reactive({
 li {
   flex-grow: 1;
   animation: fadeIn .2s;
-  background-color: lightgray;
   position: relative;
-
+  background none
   //.selected-overlay {
   //  position: absolute;
   //  top: -1px;

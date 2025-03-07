@@ -7,10 +7,9 @@ definePageMeta({
 </script>
 
 <template>
-  <main>
+  <main class="w-screen h-screen flex flex-col items-stretch">
     <TopBar/>
-
-    <Splitter class="h-screen border-none rounded-none">
+    <Splitter class="flex-grow border-none rounded-none">
       <SplitterPanel :size="10" :maxSize="50">
         <LeftSidebar/>
       </SplitterPanel>
@@ -24,11 +23,5 @@ definePageMeta({
   </main>
 </template>
 
-<style scoped>
-.splitter {
-  height: 100vh;
-  width: 100vw;
-  border: none;
-  border-radius: 0;
-}
+<style scoped lang="stylus">
 </style>

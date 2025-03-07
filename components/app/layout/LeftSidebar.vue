@@ -1,23 +1,33 @@
 <script setup lang="ts">
-import {usePicturesStore} from "~/stores/pictures";
+
+import TagsList from "~/components/app/left_sidebar/TagsList.vue";
 
 const fetchAllPictures = async (deleted = false) => {
   if (deleted){
-    await usePicturesStore().query("deleted sort=creation", 1);
+    await usePicturesStore().query("!deleted sort=creation")
   }else{
-    await usePicturesStore().query("!deleted sort=creation", 1);
+   await usePicturesStore().query("deleted sort=creation")
   }
 }
 </script>
 
 <template>
-  <Tabs value="0">
+  <Tabs value="2" class="left-sidebar h-full">
     <TabList>
-      <Tab value="0">Header I</Tab>
-      <Tab value="1">Header II</Tab>
-      <Tab value="2">Header III</Tab>
+      <Tab value="0" v-tooltip="{ value: 'Arrangements and groups', showDelay: 500 }">
+        <i class="pi pi-objects-column"></i>
+      </Tab>
+      <Tab value="1" v-tooltip="{ value: 'Hierarchies', showDelay: 500 }">
+        <i class="pi pi-sitemap"></i>
+      </Tab>
+      <Tab value="2" v-tooltip="{ value: 'Tag groups and tags', showDelay: 500 }">
+        <i class="pi pi-tag"></i>
+      </Tab>
+      <Tab value="3" v-tooltip="{ value: 'Groups shared to you', showDelay: 500 }">
+        <i class="pi pi-share-alt"></i>
+      </Tab>
     </TabList>
-    <TabPanels>
+    <TabPanels class="h-full">
       <TabPanel value="0">
         <Button
             label="Show All Pictures"
@@ -40,7 +50,10 @@ const fetchAllPictures = async (deleted = false) => {
           nesciunt. Consectetur, adipisci velit, sed quia non numquam eius modi.
         </p>
       </TabPanel>
-      <TabPanel value="2">
+      <TabPanel value="2" class="h-full">
+        <TagsList/>
+      </TabPanel>
+      <TabPanel value="3">
         <p class="m-0">
           At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores
           et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa
@@ -53,5 +66,16 @@ const fetchAllPictures = async (deleted = false) => {
 </template>
 
 <style scoped lang="stylus">
+
+</style>
+
+<style lang="stylus">
+.left-sidebar
+  .p-tablist-tab-list
+    i
+      font-size 1.4em
+
+  --tabs-tabpanel-padding .5em
+  --tree-padding 0
 
 </style>

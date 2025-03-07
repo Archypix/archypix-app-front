@@ -1,7 +1,7 @@
 import type {PictureFilter, PictureSort, PicturesQuery} from "~/stores/pictures";
 import {PictureFilterType, PictureSortType} from "~/stores/pictures";
 
-type QueryComponent = {
+export type QueryComponent = {
     invert: boolean;
     key: string;
     selector?: string | number;
@@ -66,9 +66,9 @@ export const build_query = (query_components: QueryComponent[], page: number): P
     const filters: PictureFilter[] = [];
     const sorts: PictureSort[] = [];
 
-    const components = convertQueryComponentToIds(query_components);
+    ///const components = convertQueryComponentToIds(query_components);
 
-    for (const component of components) {
+    for (const component of query_components) {
         const {invert, key, selector, values} = component;
 
         if (key === 'deleted') {
@@ -184,13 +184,11 @@ const getGroupIdByName = (arrangementId: number, groupName: string): number => {
 };
 
 const getTagGroupIdByName = (name: string): number => {
-    // This function should be implemented to return the tag group ID
-    return 1; // Placeholder
+    return useTagsStore().tagGroupNameToTagGroupId(name) || 0;
 };
 
 const getTagIdByName = (tagGroupId: number, tagName: string): number => {
-    // This function should be implemented to return the tag ID
-    return 3; // Placeholder
+    return useTagsStore().tagGroupIdAndTagNameToTagId(tagGroupId, tagName) || 0;
 };
 
 const getArrangementNameById = (id: number): string => {
@@ -204,13 +202,11 @@ const getGroupNameById = (id: number): string => {
 };
 
 const getTagGroupNameById = (id: number): string => {
-    // This function should be implemented to return the tag group name
-    return "tagGroupName"; // Placeholder
+    return useTagsStore().tagGroupIdToTagGroupName(id) || '';
 };
 
 const getTagNameById = (id: number): string => {
-    // This function should be implemented to return the tag name
-    return "tagName"; // Placeholder
+    return useTagsStore().tagIdToTagName(id) || '';
 };
 
 // Utils

@@ -45,6 +45,7 @@ export const usePicturesStore = defineStore('pictures', () => {
     const pictures = ref<ListPictureData[]>([])
     const loading = ref<boolean>(false)
 
+    // Stores the last query using either names or ids or the original version
     const last_query_components_ids = ref<QueryComponent[]>([])
     const last_query_string_names = ref<string>('')
     const last_query_string_ids = ref<string>('')
@@ -62,30 +63,44 @@ export const usePicturesStore = defineStore('pictures', () => {
     watch(route, checkUpdateRoute)
     onMounted(checkUpdateRoute)
 
+    /**
+     * Return true if the last_query is a config query (should open a config pane instead of a picture list)
+     */
+    const is_config = computed(() => {
+        return last_query_components_ids.value.some(c => c.key == 'config');
+    })
+
     // Public
-    const queryMore = async () => {
+    const query_more = async () => {
+        if(is_config)
         page.value += 1;
         await query_components()
     }
     const query = async (query_str: string, to_names = true) => {
         page.value = 1;
-        loading.value = true;
         console.log("Query:", query_str, "Page:", page.value);
 
         const components = parse_query(query_str);
-        last_query_components_ids.value = convertQueryComponentToIds(components);
+        last_query_components_ids.value = await convertQueryComponentToIds(components);
+        if (!is_config.value) loading.value = true;
 
         last_query_string_ids.value = queryComponentsToString(last_query_components_ids.value);
-        last_query_string_names.value = queryComponentsToString(convertQueryComponentToNames(components));
+        last_query_string_names.value = queryComponentsToString(await convertQueryComponentToNames(components));
         last_query_string.value = to_names ? last_query_string_names.value : query_str;
 
+        console.log("Query string:", query_str);
+        console.log("Query string ids:", last_query_string_ids.value);
+        console.log("Query string names:", last_query_string_names.value);
+
         await useRouter().push({query: {q: last_query_string_ids.value}});
-        await query_components()
+        if (!is_config.value) {
+            await query_components()
+        }
     }
 
     // Privave
     const query_components = async () => {
-
+        console.log("Querying components");
         const query = build_query(last_query_components_ids.value, page.value)
         console.log("Built query:", query);
         await fetch(query)
@@ -112,6 +127,7 @@ export const usePicturesStore = defineStore('pictures', () => {
         last_query_string,
         page,
         query,
-        queryMore
+        query_more,
+        is_config
     }
 });

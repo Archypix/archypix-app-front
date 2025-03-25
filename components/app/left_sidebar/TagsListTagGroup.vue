@@ -43,11 +43,12 @@ const addTag = (event: MouseEvent) => {
     <strong class="text-base">{{ node.label }}</strong>
     <div class="flex gap-2">
       <Button icon="pi pi-plus" class="p-button-success" @click.stop="addTag"/>
-      <Button icon="pi pi-pencil" class="p-button-success" @click.stop=""/>
+      <Button icon="pi pi-pencil" class="p-button-success" @click.stop="usePicturesStore().query('config=tag_group:' + props.node.id)"/>
       <Button icon="pi pi-trash" class="p-button-danger" @click="deleteTagGroup"/>
       <ConfirmPopup></ConfirmPopup>
     </div>
   </div>
+
   <Popover ref="newTagPopover">
     <div class="flex flex-col gap-4 w-[15rem]">
       <div>

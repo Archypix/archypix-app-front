@@ -71,7 +71,9 @@ export const build_query = (query_components: QueryComponent[], page: number): P
     for (const component of query_components) {
         const {invert, key, selector, values} = component;
 
-        if (key === 'deleted') {
+        if (key === 'config') {
+
+        } else if (key === 'deleted') {
             filters.push({type: PictureFilterType.Deleted, invert: values[0] === 'false' || invert});
         } else if (key === 'owned') {
             filters.push({type: PictureFilterType.Owned, invert: values[0] === 'false' || invert});
@@ -106,58 +108,74 @@ export const build_query = (query_components: QueryComponent[], page: number): P
     return {filters, sorts, page};
 };
 
-export const convertQueryComponentToIds = (components: QueryComponent[]): QueryComponent[] => {
-    return components.map(component => {
+export const convertQueryComponentToIds = async (components: QueryComponent[]): Promise<QueryComponent[]> => {
+    return Promise.all(components.map(async component => {
         let {invert, key, selector, values} = component;
 
-        if (key === 'arrangement') {
-            component.values = values.map(arrangement => {
-                return isString(arrangement) ? getArrangementIdByName(arrangement) : arrangement;
-            });
+        if (key === 'config') {
+            if (selector && values.length > 0 && isString(values[0])) {
+                switch (selector) {
+                    case 'tag_group':
+                        values = [await getTagGroupIdByName(values[0])];
+                        break;
+                }
+            }
+        } else if (key === 'arrangement') {
+            values = await Promise.all(values.map(async arrangement => {
+                return isString(arrangement) ? await getArrangementIdByName(arrangement) : arrangement;
+            }));
         } else if (key === 'group') {
-            selector = (selector && isString(selector) ? getArrangementIdByName(selector) : selector);
-            values = values.map(group => {
-                return selector && isString(group) ? getGroupIdByName(selector as number ?? 0, group) : group;
-            });
+            selector = (selector && isString(selector) ? await getArrangementIdByName(selector) : selector);
+            values = await Promise.all(values.map(async group => {
+                return selector && isString(group) ? await getGroupIdByName(selector as number ?? 0, group) : group;
+            }));
         } else if (key === 'tag_group') {
-            values = values.map(tag_group => {
-                return isString(tag_group) ? getTagGroupIdByName(tag_group) : tag_group;
-            });
+            values = await Promise.all(values.map(async tag_group => {
+                return isString(tag_group) ? await getTagGroupIdByName(tag_group) : tag_group;
+            }));
         } else if (key === 'tag') {
-            selector = selector && isString(selector) ? getTagGroupIdByName(selector) : selector;
-            values = values.map(tag => {
-                return selector && isString(tag) ? getTagIdByName(selector as number ?? 0, tag) : tag;
-            });
+            selector = selector && isString(selector) ? await getTagGroupIdByName(selector) : selector;
+            values = await Promise.all(values.map(async tag => {
+                return selector && isString(tag) ? await getTagIdByName(selector as number ?? 0, tag) : tag;
+            }));
         }
         return {invert, key, selector, values}
-    })
+    }))
 };
 
-export const convertQueryComponentToNames = (components: QueryComponent[]): QueryComponent[] => {
-    return components.map(component => {
+export const convertQueryComponentToNames = async (components: QueryComponent[]): Promise<QueryComponent[]> => {
+    return Promise.all(components.map(async component => {
         let {invert, key, selector, values} = component
 
-        if (key === 'arrangement') {
-            values = values.map(arrangement => {
-                return isString(arrangement) ? arrangement : getArrangementNameById(arrangement);
-            });
+        if (key === 'config') {
+            if (selector && values.length > 0 && !isString(values[0])) {
+                switch (selector) {
+                    case 'tag_group':
+                        values = [await getTagGroupNameById(values[0])];
+                        break;
+                }
+            }
+        } else if (key === 'arrangement') {
+            values = await Promise.all(values.map(async arrangement => {
+                return isString(arrangement) ? arrangement : await getArrangementNameById(arrangement);
+            }));
         } else if (key === 'group') {
-            selector = !selector || isString(selector) ? selector : getArrangementNameById(selector);
-            values = values.map(group => {
-                return isString(group) ? group : getGroupNameById(group);
-            });
+            selector = !selector || isString(selector) ? selector : await getArrangementNameById(selector);
+            values = await Promise.all(values.map(async group => {
+                return isString(group) ? group : await getGroupNameById(group);
+            }));
         } else if (key === 'tag_group') {
-            values = values.map(tag_group => {
-                return isString(tag_group) ? tag_group : getTagGroupNameById(tag_group);
-            });
+            values = await Promise.all(values.map(async tag_group => {
+                return isString(tag_group) ? tag_group : await getTagGroupNameById(tag_group);
+            }));
         } else if (key === 'tag') {
-            selector = !selector || isString(selector) ? selector : getTagGroupNameById(selector);
-            values = values.map(tag => {
-                return isString(tag) ? tag : getTagNameById(tag);
-            });
+            selector = !selector || isString(selector) ? selector : await getTagGroupNameById(selector);
+            values = await Promise.all(values.map(async tag => {
+                return isString(tag) ? tag : await getTagNameById(tag);
+            }));
         }
         return {invert, key, selector, values}
-    });
+    }));
 };
 
 export const queryComponentsToString = (components: QueryComponent[]): string => {
@@ -173,40 +191,40 @@ export const queryComponentsToString = (components: QueryComponent[]): string =>
 
 // Converters from/to id/name
 
-const getArrangementIdByName = (name: string): number => {
+const getArrangementIdByName = async (name: string): Promise<number> => {
     // This function should be implemented to return the arrangement ID
     return 1; // Placeholder
 };
 
-const getGroupIdByName = (arrangementId: number, groupName: string): number => {
+const getGroupIdByName = async (arrangementId: number, groupName: string): Promise<number> => {
     // This function should be implemented to return the group ID
     return 1; // Placeholder
 };
 
-const getTagGroupIdByName = (name: string): number => {
-    return useTagsStore().tagGroupNameToTagGroupId(name) || 0;
+const getTagGroupIdByName = async (name: string): Promise<number> => {
+    return await useTagsStore().tagGroupNameToTagGroupId(name) || 0;
 };
 
-const getTagIdByName = (tagGroupId: number, tagName: string): number => {
-    return useTagsStore().tagGroupIdAndTagNameToTagId(tagGroupId, tagName) || 0;
+const getTagIdByName = async (tagGroupId: number, tagName: string): Promise<number> => {
+    return await useTagsStore().tagGroupIdAndTagNameToTagId(tagGroupId, tagName) || 0;
 };
 
-const getArrangementNameById = (id: number): string => {
+const getArrangementNameById = async (id: number): Promise<string> => {
     // This function should be implemented to return the arrangement name
     return "arrangementName"; // Placeholder
 };
 
-const getGroupNameById = (id: number): string => {
+const getGroupNameById = async (id: number): Promise<string> => {
     // This function should be implemented to return the group name
     return "groupName"; // Placeholder
 };
 
-const getTagGroupNameById = (id: number): string => {
-    return useTagsStore().tagGroupIdToTagGroupName(id) || '';
+const getTagGroupNameById = async (id: number): Promise<string> => {
+    return await useTagsStore().tagGroupIdToTagGroupName(id) || '';
 };
 
-const getTagNameById = (id: number): string => {
-    return useTagsStore().tagIdToTagName(id) || '';
+const getTagNameById = async (id: number): Promise<string> => {
+    return await useTagsStore().tagIdToTagName(id) || '';
 };
 
 // Utils

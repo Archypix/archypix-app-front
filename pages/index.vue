@@ -24,4 +24,7 @@ definePageMeta({
 </template>
 
 <style scoped lang="stylus">
+.p-splitter {
+  min-height: 0;
+}
 </style>

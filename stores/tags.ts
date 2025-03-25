@@ -29,10 +29,18 @@ export const useTagsStore = defineStore('tags', () => {
 
     const all_tags = ref<TagGroupWithTags[]>([])
 
+    let tagsLoaded: Promise<void>;
+    let resolveTagsLoaded: () => void;
+    tagsLoaded = new Promise((resolve) => {
+        resolveTagsLoaded = resolve;
+    });
+
+
     const fetch_tags = () => {
         useGetApi<AllTagsResponse>(false, '/tags')
             .then((res) => {
                 all_tags.value = res.tag_groups
+                resolveTagsLoaded();
             })
             .catch((error: ApiError | null) => {
                 useToastService().apiError(error, "Unable to fetch tags");
@@ -43,7 +51,8 @@ export const useTagsStore = defineStore('tags', () => {
         fetch_tags();
     });
 
-    const tagIdToTagName = (tag_id: number): string | null => {
+    const tagIdToTagName = async (tag_id: number): Promise<string | null> => {
+        await tagsLoaded;
         for (const tag_group of all_tags.value) {
             for (const tag of tag_group.tags) {
                 if (tag.id === tag_id) {
@@ -53,7 +62,8 @@ export const useTagsStore = defineStore('tags', () => {
         }
         return null;
     }
-    const tagGroupIdToTagGroupName = (tag_group_id: number): string | null => {
+    const tagGroupIdToTagGroupName = async (tag_group_id: number): Promise<string | null> => {
+        await tagsLoaded;
         for (const tag_group of all_tags.value) {
             if (tag_group.tag_group.id === tag_group_id) {
                 return tag_group.tag_group.name;
@@ -61,7 +71,8 @@ export const useTagsStore = defineStore('tags', () => {
         }
         return null;
     }
-    const tagGroupIdAndTagNameToTagId = (tag_group_id: number, tag_name: string): number | null => {
+    const tagGroupIdAndTagNameToTagId = async (tag_group_id: number, tag_name: string): Promise<number | null> => {
+        await tagsLoaded;
         for (const tag_group of all_tags.value) {
             if (tag_group.tag_group.id === tag_group_id) {
                 for (const tag of tag_group.tags) {
@@ -73,7 +84,8 @@ export const useTagsStore = defineStore('tags', () => {
         }
         return null;
     }
-    const tagGroupNameToTagGroupId = (tag_group_name: string): number | null => {
+    const tagGroupNameToTagGroupId = async (tag_group_name: string): Promise<number | null> => {
+        await tagsLoaded;
         for (const tag_group of all_tags.value) {
             if (tag_group.tag_group.name.toLowerCase() === tag_group_name.toLowerCase()) {
                 return tag_group.tag_group.id;

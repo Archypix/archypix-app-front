@@ -14,8 +14,8 @@ let pictures_store = usePicturesStore()
 ul
   overflow scroll
   list-style none
-  padding 0
-  margin 3px
+  padding 3px
+  margin 0
   display flex
   flex-wrap wrap
   align-content stretch

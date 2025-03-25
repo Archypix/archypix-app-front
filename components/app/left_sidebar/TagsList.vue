@@ -5,6 +5,7 @@ import TagsListTagGroup from "~/components/app/left_sidebar/TagsListTagGroup.vue
 export interface TagGroupNode {
   type: 'group';
   key: string;
+  id: number;
   label: string;
   data: TagGroup;
   children: TagNode[];
@@ -13,6 +14,7 @@ export interface TagGroupNode {
 export interface TagNode {
   type: 'tag';
   key: string;
+  id: number;
   label: string;
   data: Tag;
   multiple: boolean;
@@ -38,11 +40,13 @@ const buildTagsTree = () => {
   tagsTree.value = tagsStore.all_tags.map((tagGroup) => ({
     type: 'group',
     key: `tag_group=${tagGroup.tag_group.id}`,
+    id: tagGroup.tag_group.id,
     label: tagGroup.tag_group.name,
     data: tagGroup.tag_group,
     children: tagGroup.tags.map((tag) => ({
       type: 'tag',
       key: `tag=${tagGroup.tag_group.id}:${tag.id}`,
+      id: tag.id,
       label: tag.name,
       data: tag,
       multiple: tagGroup.tag_group.multiple,

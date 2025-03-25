@@ -1,5 +1,8 @@
 <script setup lang="ts">
 
+let pictures_store = usePicturesStore()
+
+
 </script>
 
 <template>
@@ -24,7 +27,9 @@
     </template>
   </Toolbar>
 
-  <PicturesList/>
+  <ConfigPane v-if="pictures_store.is_config" />
+  <PicturesList v-else />
+
 </template>
 
 <style scoped lang="stylus">

@@ -42,38 +42,9 @@ const addTag = (event: MouseEvent) => {
   <div class="w-full flex justify-between items-center">
     <strong class="text-base">{{ node.label }}</strong>
     <div class="flex gap-2">
-      <Button icon="pi pi-plus" class="p-button-success" @click.stop="addTag"/>
-      <Button icon="pi pi-pencil" class="p-button-success" @click.stop="usePicturesStore().query('config=tag_group:' + props.node.id)"/>
-      <Button icon="pi pi-trash" class="p-button-danger" @click="deleteTagGroup"/>
-      <ConfirmPopup></ConfirmPopup>
+      <Button icon="pi pi-pencil" label="Edit" class="p-button-success" @click.stop="usePicturesStore().query('config=tag_group:' + props.node.id)"/>
     </div>
   </div>
-
-  <Popover ref="newTagPopover">
-    <div class="flex flex-col gap-4 w-[15rem]">
-      <div>
-        <span class="font-medium block mb-2">New tag in the tag group {{props.node.data.name}}</span>
-        <InputGroup>
-          <InputText value="" placeholder="name"></InputText>
-        </InputGroup>
-      </div>
-      <div>
-        <span class="font-medium block mb-2">Tag color</span>
-        <ColorPicker  inline />
-      </div>
-      <div>
-        <Checkbox inputId="tagDefault" name="required" value="Mushroom"/>
-        <label for="tagDefault"> Default </label>
-        <i class="pi pi-info-circle text-red-700"
-           v-tooltip.bottom="'Default tags are automatically added to new pictures'"></i>
-      </div>
-      <div>
-        <Checkbox inputId="addToAll" name="required" value="Mushroom"/>
-        <label for="addToAll"> Add to all pictures </label>
-      </div>
-      <Button class="p-button-success w-full">Create tag</Button>
-    </div>
-  </Popover>
 </template>
 
 <style scoped lang="stylus">

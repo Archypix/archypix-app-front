@@ -49,7 +49,6 @@ export const parse_query = (query_string: string): QueryComponent[] => {
             if (isNaN(int_val)) return unquoteString(value);
             else return int_val;
         });
-
         components.push({
             invert,
             key,
@@ -182,10 +181,10 @@ export const queryComponentsToString = (components: QueryComponent[]): string =>
     return components.map(component => {
         let {invert, key, selector, values} = component;
 
-        let selector_str = selector ? `${quoteIfNeeded(selector)}:` : '';
+        let selector_str = selector != null ? `${quoteIfNeeded(selector)}:` : '';
         let values_str = values.map(value => quoteIfNeeded(value)).join(',');
 
-        return `${invert ? '!' : ''}${key}${values_str ? '=' : ''}${selector_str}${values_str}`;
+        return `${invert ? '!' : ''}${key}${values_str != null ? '=' : ''}${selector_str}${values_str}`;
     }).join(' ');
 }
 
@@ -341,6 +340,6 @@ function quoteIfNeeded(str: string | number): string {
     return str;
 }
 
-function isString(o: any): o is string {
+export function isString(o: any): o is string {
     return typeof o == "string" || (typeof o == "object" && o.constructor === String);
 }

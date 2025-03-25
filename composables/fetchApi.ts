@@ -57,6 +57,16 @@ export const usePostApi = async function <B, R>(ssr: boolean = false, path: stri
     let user = useUserStore()
     return await useFetchApi<B, R>(ssr, 'POST', user.auth_token, user.id, path, body)
 }
+export const usePatchApi = async function <B, R>(ssr: boolean = false, path: string, body: B) {
+
+    let user = useUserStore()
+    return await useFetchApi<B, R>(ssr, 'PATCH', user.auth_token, user.id, path, body)
+}
+export const useDeleteApi = async function <B, R>(ssr: boolean = false, path: string, body: B) {
+
+    let user = useUserStore()
+    return await useFetchApi<B, R>(ssr, 'DELETE', user.auth_token, user.id, path, body)
+}
 
 export const useFetchApi = async function <B, R>(ssr: boolean = false, method: string, auth_token: string | null | undefined,
                                                  id: string | null | undefined, path: string, body: B): Promise<R> {
@@ -64,6 +74,8 @@ export const useFetchApi = async function <B, R>(ssr: boolean = false, method: s
     return new Promise<R>(async (resolve: (data: R) => void, reject: (error: ApiError | null) => void) => {
         const backend_host = import.meta.server ? useRuntimeConfig()?.public?.backendHostSSR : useRuntimeConfig()?.public?.backendHost;
         console.log('useFetchApi', 'ssr:', ssr, 'method:', method, 'id:', id, 'path:', path, 'body:', body)
+
+        //TODO: support receiving 200 OK empty responses.
 
         // @ts-ignore
         let {data, error} = await useFetch<R, HttpError>(backend_host + path, {

@@ -41,11 +41,6 @@ const deleteTag = (event: MouseEvent, tag: Tag) => {
         :style="{ backgroundColor: `rgb(${node.data.color.join(',')})` }"
         :rounded="false"
     />
-    <div class="flex gap-2">
-      <Button icon="pi pi-pencil" class="p-button-success" @click.stop=""/>
-      <Button icon="pi pi-trash" class="p-button-danger" @click="(e) => deleteTag(e, node.data)"/>
-      <ConfirmPopup></ConfirmPopup>
-    </div>
   </div>
 </template>
 

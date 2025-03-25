@@ -2,8 +2,6 @@
 import type {ApiError} from "~/composables/fetchApi";
 import {useElementVisibility} from '@vueuse/core'
 import {useToastService} from "~/composables/useToastService";
-import {load} from "yaml-ast-parser";
-
 
 const props = defineProps(['list_picture_data'])
 

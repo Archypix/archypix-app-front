@@ -16,5 +16,15 @@ export const useToastService = () => {
         })
     }
 
-    return {apiError}
+    const success = (summary: string, detail: string | null = null) => {
+        getToast().add({
+            severity: 'success',
+            summary,
+            detail,
+            life: 5000,
+            // group: 'br'
+        })
+    }
+
+    return {apiError, success}
 }

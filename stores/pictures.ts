@@ -69,6 +69,12 @@ export const usePicturesStore = defineStore('pictures', () => {
     const is_config = computed(() => {
         return last_query_components_ids.value.some(c => c.key == 'config');
     })
+    const config_component = computed(() => {
+        if (is_config){
+            return last_query_components_ids.value.find(c => c.key == 'config');
+        }
+        return null;
+    })
 
     // Public
     const query_more = async () => {
@@ -88,14 +94,14 @@ export const usePicturesStore = defineStore('pictures', () => {
         last_query_string_names.value = queryComponentsToString(await convertQueryComponentToNames(components));
         last_query_string.value = to_names ? last_query_string_names.value : query_str;
 
-        console.log("Query string:", query_str);
-        console.log("Query string ids:", last_query_string_ids.value);
-        console.log("Query string names:", last_query_string_names.value);
-
         await useRouter().push({query: {q: last_query_string_ids.value}});
         if (!is_config.value) {
             await query_components()
         }
+    }
+    const back = async () => {
+        // TODO: Prevent going back to another page
+        useRouter().back()
     }
 
     // Privave
@@ -128,6 +134,8 @@ export const usePicturesStore = defineStore('pictures', () => {
         page,
         query,
         query_more,
-        is_config
+        back,
+        is_config,
+        config_component
     }
 });

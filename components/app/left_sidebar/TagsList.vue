@@ -1,23 +1,17 @@
 <script setup lang="ts">
 
-import TagsListTagGroup from "~/components/app/left_sidebar/TagsListTagGroup.vue";
-
 export interface TagGroupNode {
   type: 'group';
   key: string;
-  id: number;
-  label: string;
-  data: TagGroup;
+  tag_group: TagGroup;
   children: TagNode[];
 }
 
 export interface TagNode {
   type: 'tag';
   key: string;
-  id: number;
-  label: string;
-  data: Tag;
-  multiple: boolean;
+  tag: Tag;
+  tag_group: TagGroup;
 }
 
 type Node = TagGroupNode | TagNode
@@ -29,22 +23,19 @@ const tagsTree = ref<TagGroupNode[]>([]);
 
 const selectedKeys = ref<string[]>([]);
 
+const isLoading = ref<boolean>(true);
 
-const buildTagsTree = async () => {
-  await tagsStore.tags_loaded_promise;
+
+const buildTagsTree = () => {
   tagsTree.value = tagsStore.all_tags.map((tagGroup) => ({
     type: 'group',
     key: `tag_group=${tagGroup.tag_group.id}`,
-    id: tagGroup.tag_group.id,
-    label: tagGroup.tag_group.name,
-    data: tagGroup.tag_group,
+    tag_group: tagGroup.tag_group,
     children: tagGroup.tags.map((tag) => ({
       type: 'tag',
       key: `tag=${tagGroup.tag_group.id}:${tag.id}`,
-      id: tag.id,
-      label: tag.name,
-      data: tag,
-      multiple: tagGroup.tag_group.multiple,
+      tag: tag,
+      tag_group: tagGroup.tag_group,
     })),
   }));
 };
@@ -62,24 +53,24 @@ const expandAll = () => {
   console.log(expandedKeys)
 };
 
-onMounted(() => {
-  buildTagsTree();
-});
-watch(tagsStore.all_tags, () => {
+watch(tagsStore.all_tags, async () => {
+  await tagsStore.tags_loaded_promise;
   buildTagsTree()
-  expandAll()
-});
+  if(isLoading.value){
+    isLoading.value = false;
+    expandAll()
+  }
+}, { immediate: true });
+
 watch(selectedKeys, () => {
   const selected = Object.entries(selectedKeys.value).filter(o => o[1]).map(o => o[0]);
   console.log(selected)
   if (selected.length > 0) {
-    usePicturesStore().query(selected[0] + ' sort=creation')
+    usePicturesStore().query(selected.join(' ') + ' sort=creation')
   }
 })
 
-
-const newTagGroupPopover = ref();
-const addTagGroup = (event: MouseEvent) => {
+const addTagGroup = (_e: MouseEvent) => {
   usePicturesStore().query('config=tag_group:0')
 }
 

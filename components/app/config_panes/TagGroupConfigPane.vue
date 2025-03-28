@@ -4,7 +4,7 @@ import {useToastService} from "#imports";
 
 // TODO: Choose whether to use a default tag on the tag group or using one of the tags.
 // TODO: When Required, force at least one tag to be default.
-// TODO: Fix color pickers and setup auto color + auto front color.
+// TODO: Fix color pickers and setup auto color.
 
 const props = defineProps({
   tagGroupId: {
@@ -37,6 +37,7 @@ const loadTagGroup = async () => {
       required: false
     };
     // Add a default tag
+    current_tags.value = [];
     addNewTag();
   } else {
     const tagGroupWithTags = tags_store.all_tags.find(tg => tg.tag_group.id === props.tagGroupId);
@@ -48,7 +49,9 @@ const loadTagGroup = async () => {
   isLoading.value = false;
 };
 
-onMounted(loadTagGroup);
+watch(props, () => {
+  loadTagGroup();
+}, {immediate: true});
 
 /// Tracking changes
 
@@ -170,7 +173,10 @@ const updateTagColor = (index: number, hexColor: any) => {
 
 <template>
   <div class="p-4">
-    <ProgressSpinner v-if="isLoading" class="flex justify-center my-8"/>
+    <div v-if="isLoading" class="flex flex-col gap-3 items-center justify-center h-full my-4">
+      <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent"/>
+      <p>Loading</p>
+    </div>
 
     <Message v-else-if="!current_tag_group" severity="error" :closable="false">
       Tag group not found
@@ -195,12 +201,17 @@ const updateTagColor = (index: number, hexColor: any) => {
           <div class="flex flex-col gap-4">
             <div>
               <label for="tag-group-name" class="font-medium block mb-2">Name</label>
-              <InputText
-                  id="tag-group-name"
-                  v-model="current_tag_group.name"
-                  class="w-full"
-                  placeholder="Enter tag group name"
-              />
+              <div class="flex items-center gap-3 ">
+                <PictureTag
+                    :tag_group="current_tag_group"
+                />
+                <InputText
+                    id="tag-group-name"
+                    v-model="current_tag_group.name"
+                    class="w-full"
+                    placeholder="Enter tag group name"
+                />
+              </div>
             </div>
 
             <div class="flex gap-6">
@@ -226,10 +237,11 @@ const updateTagColor = (index: number, hexColor: any) => {
           <div class="flex flex-col gap-3">
             <div v-for="(tag, index) in current_tags" :key="tag.id"
                  class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-              <Tag
-                  :style="{ backgroundColor: `rgb(${tag.color.join(',')})` }"
-                  class="text-base"
-                  :value="tag.name"
+
+              <PictureTag
+                  :tag="tag"
+                  :tag_group="current_tag_group"
+                  :tag_only="true"
               />
 
               <InputText v-model="current_tags[index].name" class="flex-1"/>

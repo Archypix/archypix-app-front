@@ -1,4 +1,5 @@
 import {useDeleteApi, usePatchApi} from "~/composables/fetchApi";
+import {bg} from "cronstrue/dist/i18n/locales/bg";
 
 interface AllTagsResponse {
     tag_groups: TagGroupWithTags[];
@@ -78,6 +79,7 @@ export const useTagsStore = defineStore('tags', () => {
 
             // Update local state
             all_tags.value.push(response);
+            all_tags.value = all_tags.value;
 
             return true;
         } catch (error) {
@@ -98,6 +100,7 @@ export const useTagsStore = defineStore('tags', () => {
             const index = all_tags.value.findIndex(tg => tg.tag_group.id === tag.tag_group_id);
             if (index !== -1) {
                 all_tags.value[index].tags.push(response);
+                all_tags.value = all_tags.value;
             }
 
             return true;
@@ -119,6 +122,7 @@ export const useTagsStore = defineStore('tags', () => {
             const index = all_tags.value.findIndex(tg => tg.tag_group.id === tagGroup.id);
             if (index !== -1) {
                 all_tags.value[index].tag_group = response;
+                all_tags.value = all_tags.value;
             }
 
             return true;
@@ -142,6 +146,7 @@ export const useTagsStore = defineStore('tags', () => {
                 const tagIndex = all_tags.value[tagGroupIndex].tags.findIndex(t => t.id === tag.id);
                 if (tagIndex !== -1) {
                     all_tags.value[tagGroupIndex].tags[tagIndex] = response;
+                    all_tags.value = all_tags.value;
                 }
             }
             return true;
@@ -170,6 +175,7 @@ export const useTagsStore = defineStore('tags', () => {
 
                     // Remove the tag from the array
                     all_tags.value[i].tags.splice(tagIndex, 1);
+                    all_tags.value = all_tags.value;
                     break;
                 }
             }
@@ -193,6 +199,7 @@ export const useTagsStore = defineStore('tags', () => {
             const index = all_tags.value.findIndex(tg => tg.tag_group.id === tagGroupId);
             if (index !== -1) {
                 all_tags.value.splice(index, 1);
+                all_tags.value = all_tags.value;
             }
 
             return true;
@@ -265,7 +272,7 @@ export const useTagsStore = defineStore('tags', () => {
         tagIdToTagName,
         tagGroupIdToTagGroupName,
         tagGroupIdAndTagNameToTagId,
-        tagGroupNameToTagGroupId
+        tagGroupNameToTagGroupId,
     }
 
 })

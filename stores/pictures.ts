@@ -1,6 +1,7 @@
 // Type definition for pictures query
 
 import type {QueryComponent} from "~/composables/queryStrings";
+import {defineStore} from "pinia";
 
 export interface PicturesQuery {
     filters: PictureFilter[];

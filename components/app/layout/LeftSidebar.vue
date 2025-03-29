@@ -78,4 +78,8 @@ const fetchAllPictures = async (deleted = false) => {
   --tabs-tabpanel-padding .5em
   --tree-padding 0
 
+  .p-tabpanels
+    overflow scroll
+
+
 </style>

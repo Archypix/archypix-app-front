@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import {useTagsStore} from '~/stores/tags';
 import {useToastService} from "#imports";
-
-// TODO: Choose whether to use a default tag on the tag group or using one of the tags.
-// TODO: When Required, force at least one tag to be default.
-// TODO: Fix color pickers and setup auto color.
+import {getNextAvailableColor} from '~/composables/colors';
 
 const props = defineProps({
   tagGroupId: {
@@ -70,7 +67,7 @@ const updateIsDefaultForSingleTagsGroup = () => {
     current_tags.forEach(tag => {
       tag.is_default = tag.id === defaultTagForSingleTagsGroup.value;
     });
-  }else{
+  } else {
     defaultTagForSingleTagsGroup.value = null;
   }
 };
@@ -81,11 +78,11 @@ watch(current_tag_group, updateIsDefaultForSingleTagsGroup);
 // If the tag group is required and it has no default tag, select the first tag different from tagId as default.
 const checkRequired = (tagId: number | null = null) => {
   if (current_tag_group.value?.required) {
-    if(!current_tags.some(tag => tag.is_default)){
-      if(!current_tag_group.value?.multiple){
+    if (!current_tags.some(tag => tag.is_default)) {
+      if (!current_tag_group.value?.multiple) {
         defaultTagForSingleTagsGroup.value = current_tags[0].id
         updateIsDefaultForSingleTagsGroup()
-      }else {
+      } else {
         let other_index = current_tags.findIndex(tag => tag.id !== tagId);
         if (other_index !== -1) {
           current_tags[other_index].is_default = true;
@@ -128,7 +125,7 @@ const validate = () => {
     error.value = "Tag group name cannot exceed 32 characters";
     return false;
   }
-  if(current_tag_group.value.name.length === 0) {
+  if (current_tag_group.value.name.length === 0) {
     error.value = "Tag group name cannot be empty";
     return false;
   }
@@ -215,12 +212,12 @@ const deleteTagGroup = async (event: MouseEvent) => {
   });
 };
 const addNewTag = () => {
-  // TODO: Create a default color using random new color
+  const usedColors = current_tags.map(tag => tag.color);
   const newTag: Tag = {
     id: 0,
     tag_group_id: props.tagGroupId,
     name: "New Tag",
-    color: [66, 135, 245],
+    color: getNextAvailableColor(usedColors),
     is_default: !!current_tag_group.value?.required && current_tags.length === 0
   };
   current_tags.push(newTag);
@@ -317,12 +314,11 @@ const updateTagColor = (index: number, hexColor: any) => {
 
               <InputText v-model="current_tags[index].name" class="flex-1"/>
 
-              <ColorPicker
-                  :value="getTagColor(tag)"
-                  @change="(e) => updateTagColor(index, e.value)"
-                  format="rgb"
-                  class="w-10"
+              <ColorPickerPopover
+                  :color="tag.color"
+                  @update:color="tag.color = $event"
               />
+<!--                  v-moder:color="tag.color"-->
 
               <div class="flex items-center gap-3">
                 <div class="flex items-center">

@@ -25,6 +25,9 @@ const props = defineProps<{
 
     <div class="tag-el tag" v-if="props.tag">
       <span class="tag-name"
+        :class="{
+          'tag-default': props.tag.is_default,
+        }"
         :style="{color: 'rgb(' + props.tag.color.join(',') + ')'}"
       >{{ props.tag.name }}</span>
     </div>
@@ -81,6 +84,8 @@ const props = defineProps<{
     filter: invert(1) grayscale(1) brightness(1.3) contrast(9000);
     mix-blend-mode: luminosity;
     opacity: 0.95;
+    span.tag-default
+      text-decoration underline
 
   span
     white-space nowrap

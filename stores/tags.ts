@@ -22,7 +22,6 @@ export interface TagGroup {
     user_id: number;
     name: string;
     multiple: boolean;
-    default_tag_id?: number;
     required: boolean;
 }
 
@@ -168,11 +167,6 @@ export const useTagsStore = defineStore('tags', () => {
             for (let i = 0; i < all_tags.value.length; i++) {
                 const tagIndex = all_tags.value[i].tags.findIndex(tag => tag.id === tagId);
                 if (tagIndex !== -1) {
-                    // If this tag was the default tag for its group, clear the default_tag_id
-                    if (all_tags.value[i].tag_group.default_tag_id === tagId) {
-                        all_tags.value[i].tag_group.default_tag_id = undefined;
-                    }
-
                     // Remove the tag from the array
                     all_tags.value[i].tags.splice(tagIndex, 1);
                     all_tags.value = all_tags.value;

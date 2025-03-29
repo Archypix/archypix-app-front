@@ -53,7 +53,7 @@ const expandAll = () => {
   console.log(expandedKeys)
 };
 
-watch(tagsStore.all_tags, async () => {
+watch(tagsStore, async () => {
   await tagsStore.tags_loaded_promise;
   buildTagsTree()
   if(isLoading.value){

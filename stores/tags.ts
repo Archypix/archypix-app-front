@@ -1,5 +1,5 @@
 import {useDeleteApi, usePatchApi} from "~/composables/fetchApi";
-import {bg} from "cronstrue/dist/i18n/locales/bg";
+import {useToastService} from "~/composables/useToastService";
 
 interface AllTagsResponse {
     tag_groups: TagGroupWithTags[];
@@ -7,6 +7,13 @@ interface AllTagsResponse {
 export interface TagGroupWithTags {
     tag_group: TagGroup;
     tags: Tag[];
+}
+
+interface PatchTagGroupRequest {
+    edited_tag_group: TagGroup,
+    new_tags: Tag[]
+    edited_tags: Tag[],
+    deleted_tags_ids: number[],
 }
 
 export interface Tag {
@@ -80,6 +87,7 @@ export const useTagsStore = defineStore('tags', () => {
             all_tags.value.push(response);
             all_tags.value = all_tags.value;
 
+            useToastService().success("Successfully created tag group");
             return true;
         } catch (error) {
             useToastService().apiError(error as ApiError, "Failed to create tag group");
@@ -88,95 +96,33 @@ export const useTagsStore = defineStore('tags', () => {
     }
 
     /**
-     * Create a new tag within an existing tag group
-     * @param tag The tag to create
-     */
-    const createTag = async (tag: Tag) => {
-        try {
-            const response = await usePostApi<Tag, Tag>(false, '/tag', tag);
-
-            // Update local state
-            const index = all_tags.value.findIndex(tg => tg.tag_group.id === tag.tag_group_id);
-            if (index !== -1) {
-                all_tags.value[index].tags.push(response);
-                all_tags.value = all_tags.value;
-            }
-
-            return true;
-        } catch (error) {
-            useToastService().apiError(error as ApiError, "Failed to create tag");
-            return false;
-        }
-    }
-
-    /**
      * Edit an existing tag group
-     * @param tagGroup The tag group with updated values
+     * @param edited_tag_group The tag group with updated values
+     * @param new_tags New tags to be added (id is not taken into account)
+     * @param edited_tags The tags to update with their new values
+     * @param deleted_tags_ids The IDs of the tags to be deleted
      */
-    const editTagGroup = async (tagGroup: TagGroup) => {
+    const editTagGroup = async (edited_tag_group: TagGroup, new_tags: Tag[], edited_tags: Tag[], deleted_tags_ids: number[]) => {
         try {
-            const response = await usePatchApi<TagGroup, TagGroup>(false, '/tag_group', tagGroup);
+            const patchTagGroup: PatchTagGroupRequest = {
+                edited_tag_group,
+                new_tags,
+                edited_tags,
+                deleted_tags_ids
+            };
+            const response = await usePatchApi<PatchTagGroupRequest, TagGroupWithTags>(false, '/tag_group', patchTagGroup);
 
             // Update local state
-            const index = all_tags.value.findIndex(tg => tg.tag_group.id === tagGroup.id);
+            const index = all_tags.value.findIndex(tg => tg.tag_group.id === response.tag_group.id);
             if (index !== -1) {
-                all_tags.value[index].tag_group = response;
+                all_tags.value[index] = response;
                 all_tags.value = all_tags.value;
             }
 
+            useToastService().success("Successfully updated tag group");
             return true;
         } catch (error) {
             useToastService().apiError(error as ApiError, "Failed to update tag group");
-            return false;
-        }
-    }
-
-    /**
-     * Edit an existing tag
-     * @param tag The tag with updated values
-     */
-    const editTag = async (tag: Tag) => {
-        try {
-            const response = await usePatchApi<Tag, Tag>(false, '/tag', tag);
-
-            // Update local state
-            const tagGroupIndex = all_tags.value.findIndex(tg => tg.tag_group.id === tag.tag_group_id);
-            if (tagGroupIndex !== -1) {
-                const tagIndex = all_tags.value[tagGroupIndex].tags.findIndex(t => t.id === tag.id);
-                if (tagIndex !== -1) {
-                    all_tags.value[tagGroupIndex].tags[tagIndex] = response;
-                    all_tags.value = all_tags.value;
-                }
-            }
-            return true;
-        } catch (error) {
-            useToastService().apiError(error as ApiError, "Failed to update tag");
-            return false;
-        }
-    }
-
-    /**
-     * Delete a tag
-     * @param tagId The ID of the tag to delete
-     */
-    const deleteTag = async (tagId: number) => {
-        try {
-            await useDeleteApi(false, '/tag', { id: tagId });
-
-            // Update local state
-            for (let i = 0; i < all_tags.value.length; i++) {
-                const tagIndex = all_tags.value[i].tags.findIndex(tag => tag.id === tagId);
-                if (tagIndex !== -1) {
-                    // Remove the tag from the array
-                    all_tags.value[i].tags.splice(tagIndex, 1);
-                    all_tags.value = all_tags.value;
-                    break;
-                }
-            }
-
-            return true;
-        } catch (error) {
-            useToastService().apiError(error as ApiError, "Failed to delete tag");
             return false;
         }
     }
@@ -196,6 +142,7 @@ export const useTagsStore = defineStore('tags', () => {
                 all_tags.value = all_tags.value;
             }
 
+            useToastService().success("Successfully deleted tag group");
             return true;
         } catch (error) {
             useToastService().apiError(error as ApiError, "Failed to delete tag group");
@@ -257,10 +204,7 @@ export const useTagsStore = defineStore('tags', () => {
         tags_loaded_promise,
         // Editing functions
         createTagGroup,
-        createTag,
         editTagGroup,
-        editTag,
-        deleteTag,
         deleteTagGroup,
         // Conversion functions
         tagIdToTagName,

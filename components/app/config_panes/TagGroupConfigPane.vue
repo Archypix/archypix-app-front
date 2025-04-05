@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {useTagsStore} from '~/stores/tags';
-import {useToastService} from "#imports";
 import {getNextAvailableColor} from '~/composables/colors';
 
 const props = defineProps({
@@ -160,25 +159,16 @@ const saveTagGroup = async () => {
   if (isNewTagGroup.value) {
     const ok = await tags_store.createTagGroup(current_tag_group.value, current_tags);
     if (ok) {
-      useToastService().success("Successfully created tag group");
       await usePicturesStore().back();
     }
   } else {
-    let ok = true;
-    if (isTagGroupEdited()) {
-      ok = ok && await tags_store.editTagGroup(current_tag_group.value);
-    }
-    for (const tag of editedTags()) {
-      ok = ok && await tags_store.editTag(tag);
-    }
-    for (const tag of deletedTags()) {
-      ok = ok && await tags_store.deleteTag(tag.id);
-    }
-    for (const tag of createdTags()) {
-      ok = ok && await tags_store.createTag(tag);
-    }
+    const ok = await tags_store.editTagGroup(
+        current_tag_group.value,
+        createdTags(),
+        editedTags(),
+        deletedTags().map(t => t.id)
+    );
     if (ok) {
-      useToastService().success("Successfully edited tag group");
       await usePicturesStore().back();
     }
   }

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import {useElementVisibility} from '@vueuse/core'
 
-const props = defineProps(['picture'])
+const props = defineProps<{
+  picture: ListPictureData,
+  selected: boolean,
+}>()
 
 const loading = ref(true)
 
@@ -16,11 +19,13 @@ const liStyle = reactive({
   'flex-basis': w + 'px',
   'flex-grow': w,
 })
+
 </script>
 
 <template>
-  <li ref="target" :class="{thumb: !loading, loading: loading, 'bg-slate-200': true}" :style="liStyle">
+  <li ref="target" :class="{thumb: !loading, loading: loading, selected: props.selected, 'bg-slate-200': true}" :style="liStyle">
     <Picture :picture="props.picture" :visible="targetIsVisible" v-model:loading="loading"/>
+    <div class="selected-overlay" v-if="props.selected"/>
   </li>
 </template>
 
@@ -31,15 +36,15 @@ li {
   animation: fadeIn .2s;
   position: relative;
   background none
-  //.selected-overlay {
-  //  position: absolute;
-  //  top: -1px;
-  //  left: -1px;
-  //  width: calc(100% + 2px);
-  //  height: calc(100% + 2px);
-  //  border-radius: 3px;
-  //  border: 3px solid var(--fg-info);
-  //}
+  .selected-overlay {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: calc(100% + 2px);
+    height: calc(100% + 2px);
+    border-radius: 3px;
+    border: 3px solid var(--teal-300);
+  }
 
   .thumb {
     width: 100%;

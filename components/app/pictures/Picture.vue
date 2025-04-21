@@ -7,20 +7,18 @@ const props = defineProps(['picture', 'visible', 'loading'])
 const emit = defineEmits(['update:loading']);
 
 watchEffect(() => {
-  if (props.loading && props.visible) {
+  if (props.picture && props.loading && props.visible) {
     console.log('Fetching picture ' + props.picture.id + '...')
-    setTimeout(() => {
-      useGetApi<Blob>(false, '/picture/' + props.picture.id + '/medium')
-          .then(response => {
-            if (response && props.visible) {
-              emit('update:loading', false);
-              thumbStyle["background-image"] = `url(${URL.createObjectURL(response)})`
-            }
-          })
-          .catch((error: ApiError | null) => {
-            useToastService().apiError(error, "Unable to fetch picture " + props.picture.id);
-          });
-    }, 100)
+    useGetApi<Blob>(false, '/picture/' + props.picture.id + '/medium')
+        .then(response => {
+          if (response && props.visible) {
+            emit('update:loading', false);
+            thumbStyle["background-image"] = `url(${URL.createObjectURL(response)})`
+          }
+        })
+        .catch((error: ApiError | null) => {
+          useToastService().apiError(error, "Unable to fetch picture " + props.picture.id);
+        });
   }
 })
 

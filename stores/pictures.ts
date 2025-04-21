@@ -34,6 +34,18 @@ export enum PictureSortType {
     EditionDate = "EditionDate",
 }
 
+export enum PictureOrientation {
+    Unspecified = "Unspecified",
+    Normal = "Normal",
+    HorizontalFlip = "HorizontalFlip",
+    Rotate180 = "Rotate180",
+    VerticalFlip = "VerticalFlip",
+    Rotate90HorizontalFlip = "Rotate90HorizontalFlip",
+    Rotate90 = "Rotate90",
+    Rotate90VerticalFlip = "Rotate90VerticalFlip",
+    Rotate270 = "Rotate270",
+}
+
 export type ListPictureData = {
     id: number,
     name: string,
@@ -41,9 +53,47 @@ export type ListPictureData = {
     height: number,
 }
 
+export interface Picture {
+    id: number;
+    name: string;
+    comment: string;
+    owner_id: number;
+    author_id: number;
+    deleted_date: string | null;
+    copied: boolean;
+    creation_date: string;
+    edition_date: string;
+    latitude: string | null;
+    longitude: string | null;
+    altitude: number | null;
+    orientation: PictureOrientation;
+    width: number;
+    height: number;
+    camera_brand: string | null;
+    camera_model: string | null;
+    focal_length: string | null;
+    exposure_time_num: number | null;
+    exposure_time_den: number | null;
+    iso_speed: number | null;
+    f_number: string | null;
+}
+
+export interface Rating {
+    user_id: number;
+    picture_id: number;
+    rating: number;
+}
+
+export interface PictureDetails {
+    picture: Picture;
+    tags_ids: number[];
+    ratings: Rating[];
+}
+
 export const usePicturesStore = defineStore('pictures', () => {
 
     const pictures = ref<ListPictureData[]>([])
+    const selected_pictures = ref<number[]>([])
     const loading = ref<boolean>(false)
 
     // Stores the last query using either names or ids or the original version
@@ -104,6 +154,15 @@ export const usePicturesStore = defineStore('pictures', () => {
         // TODO: Prevent going back to another page
         useRouter().back()
     }
+    const get_pictures_details = async (picture_ids: number[]) => {
+        await usePostApi<number[], Picture>(false, '/pictures_details', picture_ids)
+            .then((data: Picture) => {
+                console.log("Picture details:", data);
+            })
+            .catch((error: ApiError | null) => {
+                useToastService().apiError(error, "Unable to fetch picture details");
+            })
+    }
 
     // Privave
     const query_components = async () => {
@@ -128,6 +187,7 @@ export const usePicturesStore = defineStore('pictures', () => {
 
     return {
         pictures,
+        selected_pictures,
         loading,
         last_query_string_names,
         last_query_string_ids,
@@ -137,6 +197,7 @@ export const usePicturesStore = defineStore('pictures', () => {
         query_more,
         back,
         is_config,
-        config_component
+        config_component,
+        get_pictures_details,
     }
 });

@@ -6,7 +6,7 @@ let pictures_store = usePicturesStore()
 
 <template>
   <ul>
-    <Picture :list_picture_data="data" v-for="data in pictures_store.pictures" :key="data.id"/>
+    <PictureListElement :picture="data" v-for="data in pictures_store.pictures" :key="data.id"/>
   </ul>
 </template>
 

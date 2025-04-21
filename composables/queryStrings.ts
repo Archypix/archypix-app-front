@@ -184,7 +184,7 @@ export const queryComponentsToString = (components: QueryComponent[]): string =>
         let selector_str = selector != null ? `${quoteIfNeeded(selector)}:` : '';
         let values_str = values.map(value => quoteIfNeeded(value)).join(',');
 
-        return `${invert ? '!' : ''}${key}${values_str != null ? '=' : ''}${selector_str}${values_str}`;
+        return `${invert ? '!' : ''}${key}${values_str ? '=' : ''}${selector_str}${values_str}`;
     }).join(' ');
 }
 

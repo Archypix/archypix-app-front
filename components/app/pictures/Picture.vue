@@ -1,41 +1,31 @@
 <script setup lang="ts">
 import type {ApiError} from "~/composables/fetchApi";
-import {useElementVisibility} from '@vueuse/core'
 import {useToastService} from "~/composables/useToastService";
 
-const props = defineProps(['list_picture_data'])
+const props = defineProps(['picture', 'visible', 'loading'])
 
-const loading = ref(true)
-
-const target = useTemplateRef<HTMLImageElement | null>('target')
-const targetIsVisible = useElementVisibility(target, {
-  rootMargin: '0px 0px 0px 0px',
-})
+const emit = defineEmits(['update:loading']);
 
 watchEffect(() => {
-  if (loading.value && targetIsVisible.value) {
-    console.log('Fetching picture ' + props.list_picture_data.id + '...')
+  if (props.loading && props.visible) {
+    console.log('Fetching picture ' + props.picture.id + '...')
     setTimeout(() => {
-      useGetApi<Blob>(false, '/picture/' + props.list_picture_data.id + '/medium')
+      useGetApi<Blob>(false, '/picture/' + props.picture.id + '/medium')
           .then(response => {
-            if (response && target && target.value) {
-              loading.value = false
+            if (response && props.visible) {
+              emit('update:loading', false);
               thumbStyle["background-image"] = `url(${URL.createObjectURL(response)})`
             }
           })
           .catch((error: ApiError | null) => {
-            useToastService().apiError(error, "Unable to fetch picture " + props.list_picture_data.id);
+            useToastService().apiError(error, "Unable to fetch picture " + props.picture.id);
           });
     }, 100)
   }
 })
 
 let h = 140;
-let w = h * props.list_picture_data.width / props.list_picture_data.height;
-const liStyle = reactive({
-  'flex-basis': w + 'px',
-  'flex-grow': w,
-})
+let w = h * props.picture.width / props.picture.height;
 const thumbStyle = reactive({
   'aspect-ratio': w + '/' + h,
   'background-image': '',
@@ -44,41 +34,21 @@ const thumbStyle = reactive({
 
 <template>
   <Toast />
-  <li ref="target" :class="{thumb: !loading, loading: loading, 'bg-slate-200': true}" :style="liStyle">
-    <div class="thumb rounded-md drop-shadow-sm" :style="thumbStyle">
-      <template v-if="loading">
-        <Skeleton width="100%" height="100%" border-radius="2px"></Skeleton>
-      </template>
-    </div>
-  </li>
+  <div class="thumb rounded-md drop-shadow-sm" :style="thumbStyle">
+    <template v-if="loading">
+      <Skeleton width="100%" height="100%" border-radius="2px"></Skeleton>
+    </template>
+  </div>
 </template>
 
 <style scoped lang="stylus">
+.thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
 
-li {
-  flex-grow: 1;
-  animation: fadeIn .2s;
-  position: relative;
-  background none
-  //.selected-overlay {
-  //  position: absolute;
-  //  top: -1px;
-  //  left: -1px;
-  //  width: calc(100% + 2px);
-  //  height: calc(100% + 2px);
-  //  border-radius: 3px;
-  //  border: 3px solid var(--fg-info);
-  //}
-
-  .thumb {
-    width: 100%;
-    height: 100%;
-    border-radius: 2px;
-
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-  }
-
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 </style>

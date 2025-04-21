@@ -10,25 +10,26 @@ const cities = ref([
 </script>
 
 <template>
-  <NuxtLink to="/signin">Go to Signin</NuxtLink>
-  <InputGroup>
-    <InputGroupAddon>
-      <i class="pi pi-search"></i>
-    </InputGroupAddon>
+  <PictureDetails />
+  <!--  <NuxtLink to="/signin">Go to Signin</NuxtLink>-->
+  <!--  <InputGroup>-->
+  <!--    <InputGroupAddon>-->
+  <!--      <i class="pi pi-search"></i>-->
+  <!--    </InputGroupAddon>-->
 
-    <InputText placeholder="Search"/>
+  <!--    <InputText placeholder="Search"/>-->
 
-    <Button label="Check" icon="pi pi-check"/>
-  </InputGroup>
-  <Card>
-    <template #title>
-      Multi Select : {{ selectedCities }}
-    </template>
-    <template #content>
-      <MultiSelect v-model="selectedCities" :options="cities" filter optionLabel="name" placeholder="Select Cities"
-                   :maxSelectedLabels="3"/>
-    </template>
-  </Card>
+  <!--    <Button label="Check" icon="pi pi-check"/>-->
+  <!--  </InputGroup>-->
+  <!--  <Card>-->
+  <!--    <template #title>-->
+  <!--      Multi Select : {{ selectedCities }}-->
+  <!--    </template>-->
+  <!--    <template #content>-->
+  <!--      <MultiSelect v-model="selectedCities" :options="cities" filter optionLabel="name" placeholder="Select Cities"-->
+  <!--                   :maxSelectedLabels="3"/>-->
+  <!--    </template>-->
+  <!--  </Card>-->
 </template>
 
 <style scoped lang="stylus">

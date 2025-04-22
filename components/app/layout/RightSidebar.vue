@@ -10,7 +10,9 @@ const cities = ref([
 </script>
 
 <template>
-  <PictureDetails />
+  <div class="right-sidebar h-full">
+    <PictureDetails/>
+  </div>
   <!--  <NuxtLink to="/signin">Go to Signin</NuxtLink>-->
   <!--  <InputGroup>-->
   <!--    <InputGroupAddon>-->
@@ -33,5 +35,6 @@ const cities = ref([
 </template>
 
 <style scoped lang="stylus">
-
+.right-sidebar
+  overflow-y scroll
 </style>

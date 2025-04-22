@@ -51,13 +51,15 @@ function formatLatLng(lat: string | null, lng: string | null) {
 }
 
 watch(picturesStore, async () => {
-  console.log("Updating picture details", picturesStore.selected_pictures)
   if (picturesStore.selected_pictures.length == 1) {
     const picture_id = picturesStore.selected_pictures[0]
+
+    if (picture_id == picture.value?.id) return;
 
     await useGetApi<PictureDetails>(false, '/picture_details/' + picture_id)
         .then((data: PictureDetails) => {
           isLoading.value = false;
+          pictureLoading.value = true;
           picture.value = data.picture;
           ratings.value = data.ratings;
           tags_ids.value = data.tags_ids;
@@ -76,19 +78,27 @@ watch(picturesStore, async () => {
     <div class="w-full">
       <Picture :picture="picture" :visible="true" v-model:loading="pictureLoading"/>
     </div>
-    <div class="flex flex-col gap-2.5 p-2">
+    <div class="flex flex-col gap-2 p-2">
       <div class="inline-flex items-baseline gap-2 justify-between font-medium text-lg">
         <span>{{ picture.name }}</span>
-        <span class="text-gray-500">xxx Mo</span>
+        <span class="text-gray-500">{{ picture.size_ko < 1000 ? picture.size_ko + ' Ko' : (picture.size_ko / 1000).toFixed(1) + ' Mo' }}</span>
       </div>
       <div class="text-gray-500 italic text-base">{{ picture.comment }}</div>
       <div class="flex items-center justify-between gap-3">
-        <Rating v-model="rating" />
+        <Rating v-model="rating" class="text-yellow-400">
+          <template #onicon>
+            <i class="pi pi-star-fill text-xl"></i>
+          </template>
+          <template #officon>
+            <i class="pi pi-star text-xl"></i>
+          </template>
+        </Rating>
+
         <Button icon="pi pi-share-alt" aria-label="Share" />
       </div>
       <div class="mt-2">
         <div class="font-medium mb-0.5">Tags :</div>
-        <div class="flex flex-wrap gap-1.5 items-center">
+        <div class="flex flex-wrap gap-1.5 items-center text-sm">
           <template v-if="tagsWithGroups.length" v-for="tg in tagsWithGroups" :key="tg?.tag.id">
             <PictureTag v-if="tg" :tag="tg.tag" :tag_group="tg.tag_group"/>
           </template>

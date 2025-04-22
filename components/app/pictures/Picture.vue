@@ -22,12 +22,18 @@ watchEffect(() => {
   }
 })
 
-let h = 140;
-let w = h * props.picture.width / props.picture.height;
+
 const thumbStyle = reactive({
-  'aspect-ratio': w + '/' + h,
+  'aspect-ratio': '1/1',
   'background-image': '',
 })
+
+watch(props, () => {
+  let h = 140;
+  let w = h * props.picture.width / props.picture.height;
+  thumbStyle["aspect-ratio"] = w + '/' + h
+}, { immediate: true})
+
 </script>
 
 <template>

@@ -76,6 +76,7 @@ export interface Picture {
     exposure_time_den: number | null;
     iso_speed: number | null;
     f_number: string | null;
+    size_ko: number;
 }
 
 export interface Rating {

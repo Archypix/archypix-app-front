@@ -14,6 +14,30 @@ const tags_ids = ref<number[]>([]);
 
 const rating = ref<number | undefined>(4);
 
+const fetchPictureDetails = async (force: boolean = false) => {
+  console.log("Fetching picture details");
+  if (picturesStore.selected_pictures.length == 1) {
+    const picture_id = picturesStore.selected_pictures[0]
+
+    const already_loaded = picture_id == picture.value?.id;
+    if (!force && already_loaded) return;
+
+    await useGetApi<PictureDetails>(false, '/picture_details/' + picture_id)
+        .then((data: PictureDetails) => {
+          if(!already_loaded){
+            isLoading.value = false;
+            pictureLoading.value = true;
+          }
+          picture.value = data.picture;
+          ratings.value = data.ratings;
+          tags_ids.value = data.tags_ids;
+        })
+        .catch((error: ApiError | null) => {
+          useToastService().apiError(error, "Unable to fetch picture details");
+        })
+  }
+}
+
 const userRating = computed(() => {
   if (!ratings.value || !userStore.id) return null;
   const r = ratings.value.find(r => r.user_id === Number(userStore.id));
@@ -38,6 +62,14 @@ const tagsWithGroups = computed(() => {
   }).filter(Boolean);
 });
 
+const showTagSelector = ref(false);
+const tagSelectorPosition = ref({ x: 0, y: 0 });
+
+function openTagSelector(event: MouseEvent) {
+  showTagSelector.value = true;
+  tagSelectorPosition.value = { x: event.clientX, y: event.clientY };
+}
+
 // Add date and geo formatters
 function formatDate(date: string | null) {
   if (!date) return '-';
@@ -50,26 +82,15 @@ function formatLatLng(lat: string | null, lng: string | null) {
   return `${lat}, ${lng}`;
 }
 
-watch(picturesStore, async () => {
-  if (picturesStore.selected_pictures.length == 1) {
-    const picture_id = picturesStore.selected_pictures[0]
-
-    if (picture_id == picture.value?.id) return;
-
-    await useGetApi<PictureDetails>(false, '/picture_details/' + picture_id)
-        .then((data: PictureDetails) => {
-          isLoading.value = false;
-          pictureLoading.value = true;
-          picture.value = data.picture;
-          ratings.value = data.ratings;
-          tags_ids.value = data.tags_ids;
-        })
-        .catch((error: ApiError | null) => {
-          useToastService().apiError(error, "Unable to fetch picture details");
-        })
+const updatePictureTags = async (tagsToAdd: number[], tagsToRemove: number[]) => {
+  if (!picture.value) return;
+  const picture_tag_ids = await tagsStore.editPicturesTags(picturesStore.selected_pictures, tagsToAdd, tagsToRemove);
+  if (picture_tag_ids !== null) {
+    tags_ids.value = picture_tag_ids;
   }
-})
+}
 
+watch(picturesStore, () => fetchPictureDetails())
 
 </script>
 
@@ -100,12 +121,19 @@ watch(picturesStore, async () => {
         <div class="font-medium mb-0.5">Tags :</div>
         <div class="flex flex-wrap gap-1.5 items-center text-sm">
           <template v-if="tagsWithGroups.length" v-for="tg in tagsWithGroups" :key="tg?.tag.id">
-            <PictureTag v-if="tg" :tag="tg.tag" :tag_group="tg.tag_group"/>
+            <PictureTag v-if="tg" :tag="tg.tag" :tag_group="tg.tag_group" :picture_id="picture.id" @update="() => fetchPictureDetails(true)"/>
           </template>
 
           <button class="bg-gray-100 rounded-full w-6 h-6 text-lg flex items-center justify-center text-gray-500 hover:bg-gray-200 transition"
-                  title="Add tag">＋
+                  title="Add tag"
+                  @click="openTagSelector($event)">＋
           </button>
+
+          <TagSelector
+            v-if="picture"
+            :picture-tags="tags_ids"
+            @update="updatePictureTags"
+          />
         </div>
       </div>
       <div class="mt-2">

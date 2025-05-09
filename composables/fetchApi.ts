@@ -75,8 +75,6 @@ export const useFetchApi = async function <B, R>(ssr: boolean = false, method: s
         const backend_host = import.meta.server ? useRuntimeConfig()?.public?.backendHostSSR : useRuntimeConfig()?.public?.backendHost;
         console.log('useFetchApi', 'ssr:', ssr, 'method:', method, 'id:', id, 'path:', path, 'body:', body)
 
-        //TODO: support receiving 200 OK empty responses.
-
         // @ts-ignore
         let {data, error} = await useFetch<R, HttpError>(backend_host + path, {
             key: hash([ssr, method, auth_token, id, path, body]),
@@ -89,9 +87,17 @@ export const useFetchApi = async function <B, R>(ssr: boolean = false, method: s
             server: ssr,
             body: body,
         })
-        if (data.value) {
-            console.log('useFetchApi', 'Success:', data.value)
-            resolve(data.value as R)
+        
+        // Handle successful responses
+        if (!error.value) {
+            // For empty responses with 200 OK status
+            if (data.value === null) {
+                console.log('useFetchApi', 'Success: Empty response')
+                resolve(undefined as unknown as R)
+            } else {
+                console.log('useFetchApi', 'Success:', data.value)
+                resolve(data.value as R)
+            }
         } else {
             let error_data = error.value?.data ?? null;
             if (error_data == null) {

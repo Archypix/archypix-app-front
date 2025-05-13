@@ -10,6 +10,8 @@ const emit = defineEmits<{
   'update': [tagsToAdd: number[], tagsToRemove: number[]];
 }>();
 
+// TODO: watch for changes in the tags store in case the user adds new tags (specifically when the tag list is empty.)
+
 const tagsStore = useTagsStore();
 const selectedTags = ref({});
 const treeNodes = ref([]);
@@ -113,7 +115,7 @@ const handleNodeClick = (node: any) => {
       v-model="selectedTags"
       :options="treeNodes"
       :loading="loading"
-      selectionMode="multiple"
+      selectionMode="checkbox"
       filter
       placeholder="Select a tag"
       class="tag-selector-custom-tree-select"

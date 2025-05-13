@@ -22,6 +22,7 @@ const confirm = useConfirm();
 
 const isNewTagGroup = computed(() => props.tagGroupId === 0);
 
+// TODO: default selection and requirement system is buggy on creating a new tag group.
 
 const loadTagGroup = async () => {
   isLoading.value = true;

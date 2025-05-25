@@ -10,7 +10,6 @@ const emit = defineEmits<{
   'update': [tagsToAdd: number[], tagsToRemove: number[]];
 }>();
 
-// TODO: watch for changes in the tags store in case the user adds new tags (specifically when the tag list is empty.)
 
 const tagsStore = useTagsStore();
 const selectedTags = ref({});
@@ -18,7 +17,6 @@ const treeNodes = ref([]);
 const loading = ref(true);
 const expandedKeys = ref({});
 const isOpen = ref(false);
-
 
 const currentTags = computed<{tag: Tag; tag_group: TagGroup}[]>(() => {
   return props.pictureTags.map(tagId => {
@@ -34,7 +32,7 @@ const currentTags = computed<{tag: Tag; tag_group: TagGroup}[]>(() => {
 const updateSelectedFromProps = () => {
   selectedTags.value = {};
   for (const tagId of props.pictureTags) {
-    selectedTags.value[tagId] = true;
+    selectedTags.value[tagId] = {checked: true, partialChecked: false};
   }
   selectedTags.value = {...selectedTags.value};
 }
@@ -66,12 +64,11 @@ const convertToTreeNodes = (tagGroups: TagGroupWithTags[]) => {
   });
 };
 
+
 watch(tagsStore, async () => {
   await tagsStore.tags_loaded_promise;
-  if (loading.value) {
-    treeNodes.value = convertToTreeNodes(tagsStore.all_tags);
-    loading.value = false;
-  }
+  treeNodes.value = convertToTreeNodes(tagsStore.all_tags);
+  loading.value = false;
 }, {immediate: true});
 
 
@@ -81,15 +78,18 @@ const handleNodeSelect = (value) => {
 };
 
 const handleClose = async () => {
-  // Remove the isOpen check to ensure we always calculate and emit when the popup closes
-  const selected = Object.keys(selectedTags.value).map(key => Number(key));
+  // Tags that are checked (excluding partial checks)
+  const selected = Object.entries(selectedTags.value)
+      .filter(([key, value]) => console.log(key, value) || value === true || (value.checked && !value.partialChecked))
+      .map(([key, _value]) => Number(key))
+
   const tagsToAdd = selected.filter(tag => !props.pictureTags.includes(tag));
   const tagsToRemove = props.pictureTags.filter(tag => !selected.includes(tag));
-
   if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
-    console.log('Emitting tag update:', {add: tagsToAdd, remove: tagsToRemove});
     emit('update', tagsToAdd, tagsToRemove);
   }
+
+  // Remove the isOpen check to ensure we always calculate and emit when the popup closes
   isOpen.value = false;
 };
 

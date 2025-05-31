@@ -80,11 +80,13 @@ const handleNodeSelect = (value) => {
 const handleClose = async () => {
   // Tags that are checked (excluding partial checks)
   const selected = Object.entries(selectedTags.value)
-      .filter(([key, value]) => console.log(key, value) || value === true || (value.checked && !value.partialChecked))
+      .filter(([_, value]) => value === true || (value.checked && !value.partialChecked))
       .map(([key, _value]) => Number(key))
+      .filter(tagId => !isNaN(tagId));
 
   const tagsToAdd = selected.filter(tag => !props.pictureTags.includes(tag));
   const tagsToRemove = props.pictureTags.filter(tag => !selected.includes(tag));
+
   if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
     emit('update', tagsToAdd, tagsToRemove);
   }

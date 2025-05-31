@@ -1,5 +1,5 @@
-import type {PictureFilter, PictureSort, PicturesQuery} from "~/stores/pictures";
-import {PictureFilterType, PictureSortType} from "~/stores/pictures";
+import type {PictureFilter, PictureSort, PicturesQuery} from "~/types/pictures";
+import {PictureFilterType, PictureSortType} from "~/types/pictures";
 
 export type QueryComponent = {
     invert: boolean;
@@ -191,13 +191,11 @@ export const queryComponentsToString = (components: QueryComponent[]): string =>
 // Converters from/to id/name
 
 const getArrangementIdByName = async (name: string): Promise<number> => {
-    // This function should be implemented to return the arrangement ID
-    return 1; // Placeholder
+    return await useArrangementsStore().arrangementNameToId(name) || 0;
 };
 
 const getGroupIdByName = async (arrangementId: number, groupName: string): Promise<number> => {
-    // This function should be implemented to return the group ID
-    return 1; // Placeholder
+    return await useArrangementsStore().groupNameToGroupId(arrangementId, groupName) || 0;
 };
 
 const getTagGroupIdByName = async (name: string): Promise<number> => {
@@ -209,13 +207,11 @@ const getTagIdByName = async (tagGroupId: number, tagName: string): Promise<numb
 };
 
 const getArrangementNameById = async (id: number): Promise<string> => {
-    // This function should be implemented to return the arrangement name
-    return "arrangementName"; // Placeholder
+    return await useArrangementsStore().arrangementIdToName(id) || '';
 };
 
 const getGroupNameById = async (id: number): Promise<string> => {
-    // This function should be implemented to return the group name
-    return "groupName"; // Placeholder
+    return await useArrangementsStore().groupIdToGroupName(id) || '';
 };
 
 const getTagGroupNameById = async (id: number): Promise<string> => {

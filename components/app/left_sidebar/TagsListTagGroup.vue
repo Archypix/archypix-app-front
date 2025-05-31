@@ -13,7 +13,10 @@ const props = defineProps<{
         :tag_group="node.tag_group"
     />
     <div class="flex gap-2">
-      <Button icon="pi pi-pencil" label="Edit" class="p-button-success" @click.stop="usePicturesStore().query('config=tag_group:' + props.node.tag_group.id)"/>
+      <Button icon="pi pi-pencil"
+              class="p-button-text p-button-sm"
+              v-tooltip.top="'Edit tag group'"
+              @click.stop="usePicturesStore().query('config=tag_group:' + props.node.tag_group.id)"/>
     </div>
   </div>
 </template>

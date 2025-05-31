@@ -1,18 +1,16 @@
 <script setup lang="ts">
 
-import TagsList from "~/components/app/left_sidebar/TagsList.vue";
-
 const fetchAllPictures = async (deleted = false) => {
-  if (deleted){
-    await usePicturesStore().query("!deleted sort=creation")
-  }else{
-   await usePicturesStore().query("deleted sort=creation")
+  if (deleted) {
+    await usePicturesStore().query("deleted sort=creation");
+  } else {
+    await usePicturesStore().query("!deleted sort=creation");
   }
-}
+};
 </script>
 
 <template>
-  <Tabs value="2" class="left-sidebar h-full">
+  <Tabs value="0" class="left-sidebar h-full">
     <TabList>
       <Tab value="0" v-tooltip="{ value: 'Arrangements and groups', showDelay: 500 }">
         <i class="pi pi-objects-column"></i>
@@ -28,19 +26,27 @@ const fetchAllPictures = async (deleted = false) => {
       </Tab>
     </TabList>
     <TabPanels class="h-full">
-      <TabPanel value="0">
-        <Button
-            label="Show All Pictures"
-            icon="pi pi-images"
-            @click="fetchAllPictures(false)"
-            class="p-button-primary"
-        />
-        <Button
-            label="Show Deleted Pictures"
-            icon="pi pi-trash"
-            @click="fetchAllPictures(true)"
-            class="p-button-secondary"
-        />
+      <TabPanel value="0" class="h-full">
+        <div class="flex flex-col h-full">
+          <div class="flex gap-2 p-2 border-b">
+            <Button
+              label="All Pictures"
+              icon="pi pi-images"
+              @click="fetchAllPictures(false)"
+              class="p-button-text p-button-sm"
+            />
+            <Button
+              label="Trash"
+              icon="pi pi-trash"
+              @click="fetchAllPictures(true)"
+              class="p-button-text p-button-sm p-button-danger"
+              severity="danger"
+            />
+          </div>
+          <div class="flex-1 overflow-auto">
+            <ArrangementsList />
+          </div>
+        </div>
       </TabPanel>
       <TabPanel value="1">
         <p class="m-0">

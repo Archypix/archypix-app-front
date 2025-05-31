@@ -135,6 +135,86 @@ export const useArrangementsStore = defineStore('arrangements', () => {
         await fetchArrangements();
     });
 
+    // CONVERSION FUNCTIONS
+    
+    /**
+     * Get arrangement name by ID
+     * @param arrangementId The ID of the arrangement
+     * @returns The name of the arrangement or null if not found
+     */
+    const arrangementIdToName = async (arrangementId: number): Promise<string | null> => {
+        await arrangementsLoadedPromise;
+        const arrangement = arrangements.value.find(a => a.arrangement.id === arrangementId);
+        return arrangement?.arrangement.name || null;
+    };
+
+    /**
+     * Get arrangement ID by name
+     * @param name The name of the arrangement
+     * @returns The ID of the arrangement or null if not found
+     */
+    const arrangementNameToId = async (name: string): Promise<number | null> => {
+        await arrangementsLoadedPromise;
+        const arrangement = arrangements.value.find(
+            a => a.arrangement.name.toLowerCase() === name.toLowerCase()
+        );
+        return arrangement?.arrangement.id ?? null;
+    };
+
+    /**
+     * Get group name by group ID
+     * @param groupId The ID of the group
+     * @returns The name of the group or null if not found
+     */
+    const groupIdToGroupName = async (groupId: number): Promise<string | null> => {
+        await arrangementsLoadedPromise;
+        for (const arrangement of arrangements.value) {
+            const group = [...arrangement.groups, ...arrangement.to_be_deleted_groups].find(
+                g => g.id === groupId
+            );
+            if (group) return group.name;
+        }
+        return null;
+    };
+
+    /**
+     * Get group ID by group name within an arrangement
+     * @param arrangementId The ID of the arrangement
+     * @param groupName The name of the group
+     * @returns The ID of the group or null if not found
+     */
+    const groupNameToGroupId = async (arrangementId: number, groupName: string): Promise<number | null> => {
+        await arrangementsLoadedPromise;
+        const arrangement = arrangements.value.find(a => a.arrangement.id === arrangementId);
+        if (!arrangement) return null;
+        
+        const allGroups = [...arrangement.groups, ...arrangement.to_be_deleted_groups];
+        const group = allGroups.find(
+            g => g.name.toLowerCase() === groupName.toLowerCase()
+        );
+        return group?.id ?? null;
+    };
+
+    /**
+     * Get group by ID across all arrangements
+     * @param groupId The ID of the group to find
+     * @returns The group object or null if not found
+     */
+    const getGroupById = async (groupId: number) => {
+        await arrangementsLoadedPromise;
+        for (const arrangement of arrangements.value) {
+            const allGroups = [...arrangement.groups, ...arrangement.to_be_deleted_groups];
+            const group = allGroups.find(g => g.id === groupId);
+            if (group) {
+                return {
+                    group,
+                    arrangement: arrangement.arrangement
+                };
+            }
+        }
+        return null;
+    };
+
     return {
         // State
         arrangements,
@@ -147,6 +227,13 @@ export const useArrangementsStore = defineStore('arrangements', () => {
         createArrangement,
         updateArrangement,
         deleteArrangement,
+        
+        // Conversion functions
+        arrangementIdToName,
+        arrangementNameToId,
+        groupIdToGroupName,
+        groupNameToGroupId,
+        getGroupById,
 
         // Reset store
         $reset: () => {

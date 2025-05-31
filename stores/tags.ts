@@ -205,7 +205,7 @@ export const useTagsStore = defineStore('tags', () => {
                 add_tag_ids: add_tag_ids,
                 remove_tag_ids: remove_tag_ids
             };
-            let picture_tag_ids = await usePatchApi<{ pictures_ids: number[], add_tag_ids: number[], remove_tag_ids: number[] }, number[]>(false, '/picture_tags', payload);
+            let picture_tag_ids = await usePatchApi<{ picture_ids: number[], add_tag_ids: number[], remove_tag_ids: number[] }, number[]>(false, '/picture_tags', payload);
             useToastService().success("Successfully edited pictures tags");
             return picture_tag_ids;
         } catch (error) {

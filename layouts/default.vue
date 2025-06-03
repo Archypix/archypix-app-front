@@ -15,7 +15,7 @@
 <style scoped lang="stylus">
 
 .main-content
-  background-color var(--surface-ground)
+  background-color var(--p-surface-ground)
   flex-grow 1
 
 :deep(main)

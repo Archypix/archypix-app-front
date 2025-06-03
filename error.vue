@@ -36,7 +36,7 @@ main
   flex-direction column
   align-items center
   h1
-    color var(--red-600)
+    color var(--p-red-600)
   p
     margin-bottom 20px
 

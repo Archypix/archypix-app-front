@@ -13,7 +13,7 @@ const groupClass = computed(() => ({
 
 <template>
   <div class="w-full flex items-center gap-2" :class="groupClass">
-    <i class="pi pi-folder" style="color: var(--primary-color)"></i>
+    <i class="pi pi-folder" style="color: var(--p-primary-color)"></i>
     <span>{{ node.group.name }}</span>
     <span v-if="node.group.to_be_deleted" class="text-xs text-red-500 ml-2">(to be deleted)</span>
   </div>

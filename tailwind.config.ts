@@ -1,3 +1,5 @@
+import primeui from 'tailwindcss-primeui'
+
 module.exports = {
     content: [
         "./components/**/*.{js,vue,ts}",
@@ -8,9 +10,10 @@ module.exports = {
     ],
     darkMode: false, // or 'media' or 'class'
     theme: {
-        extend: {},
+        extend: {
+        },
     },
     variants: {
         extend: {},
-    }
+    },
 }

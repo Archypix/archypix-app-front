@@ -1,16 +1,19 @@
-@layer tailwind-base, primevue, tailwind-utilities;
+@layer primevue, tailwind-theme, tailwind-base, tailwind-utilities;
 
-@layer tailwind-base {
-    @tailwind base;
-}
+/*@import "tailwindcss-primeui" layer(tailwind-base);*/
 
-@layer tailwind-utilities {
-    @tailwind components;
-    @tailwind utilities;
-}
+/*@import "tailwindcss/theme.css" layer(theme);*/
+/*@import "tailwindcss/preflight.css" layer(base);*/
+/*@import "tailwindcss/utilities.css" layer(utilities);*/
+
+@import "tailwindcss";
+@import "tailwindcss-primeui";
 
 @layer archypix {
     html, button, input, optgroup, select, textarea {
         line-height: normal;
+    }
+    * {
+        border-color: var(--p-inputtext-border-color);
     }
 }

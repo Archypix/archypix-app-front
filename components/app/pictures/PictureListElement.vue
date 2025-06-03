@@ -43,7 +43,7 @@ li {
     width: calc(100% + 2px);
     height: calc(100% + 2px);
     border-radius: 3px;
-    border: 3px solid var(--teal-300);
+    border: 3px solid var(--p-teal-300);
   }
 
   .thumb {

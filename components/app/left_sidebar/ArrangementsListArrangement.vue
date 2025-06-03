@@ -13,7 +13,7 @@ const emit = defineEmits<{
 <template>
   <div class="w-full flex justify-between items-center">
     <div class="flex items-center gap-2">
-      <i class="pi pi-th-large" style="color: var(--primary-color)"></i>
+      <i class="pi pi-th-large" style="color: var(--p-primary-color)"></i>
       <span>{{ node.arrangement.arrangement.name }}</span>
     </div>
     <div class="flex gap-2">

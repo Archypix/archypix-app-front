@@ -44,12 +44,12 @@ div.type-bar
   color: white;
 
 li.Or div.type-bar
-  background-color: var(--blue-400);
+  background-color: var(--p-blue-400);
 
 li.And div.type-bar
-  background-color: var(--orange-400);
+  background-color: var(--p-orange-400);
 
 li.Not div.type-bar
-  background-color: var(--red-400);
+  background-color: var(--p-red-400);
 
 </style>

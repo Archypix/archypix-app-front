@@ -27,5 +27,5 @@ footer
   @media screen and (min-width: 800px)
     padding 1rem 5rem
 
-  background-color var(--primary-100)
+  background-color var(--p-primary-100)
 </style>

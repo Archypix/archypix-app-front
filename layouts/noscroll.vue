@@ -17,7 +17,7 @@
 <style scoped lang="stylus">
 
 .main-content
-  background-color var(--primary-50)
+  background-color var(--p-primary-50)
   flex-grow 1
   padding-top 48px
 
@@ -36,7 +36,7 @@
   margin-bottom 1em
 
 :deep(main)
-  background-color  var(--surface-0);
+  background-color  var(--p-surface-0);
   padding 10px
   padding-top 40px
   flex-basis 100%;
@@ -47,8 +47,8 @@
     padding 20px
     height fit-content
     flex-basis 350px
-    border: 1px solid var(--primary-100)
-    filter: drop-shadow(0 0 10px var(--primary-100))
+    border: 1px solid var(--p-primary-100)
+    filter: drop-shadow(0 0 10px var(--p-primary-100))
 
 
   form

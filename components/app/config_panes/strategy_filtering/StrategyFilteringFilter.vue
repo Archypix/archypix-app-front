@@ -165,7 +165,7 @@ const cities = ref([
 </script>
 
 <template>
-  <div class="filter-container p-1 border rounded-lg bg-white flex flex-row gap-2 items-center">
+  <div class="filter-container p-1 border w-full rounded-lg flex flex-row gap-2 items-center">
       <Select
         v-model="selectedFilterType"
         :options="availableFilterTypes"

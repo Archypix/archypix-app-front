@@ -1,5 +1,5 @@
-import Aura from '@primevue/themes/aura';
-// import tailwindcss from "@tailwindcss/vite";
+import Aura from '@primeuix/themes/aura';
+import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -31,12 +31,12 @@ export default defineNuxtConfig({
         '@primevue/nuxt-module',
         '@pinia/nuxt',
         '@vueuse/nuxt',
-        '@nuxtjs/tailwindcss'
+        //'@nuxtjs/tailwindcss'
     ],
 
     vite: {
         plugins: [
-            // tailwindcss(),
+            tailwindcss(),
         ],
         css: {
             preprocessorOptions: {}
@@ -45,15 +45,15 @@ export default defineNuxtConfig({
 
     primevue: {
         options: {
+            ripple: true,
             theme: {
                 preset: Aura,
                 options: {
-                    prefix: '',
+                    prefix: 'p',
                     darkModeSelector: '',
-                    cssLayer: { name: "primeui", order: "tailwind-base, primeui, primevue, tailwind-utilities, archypix;", }
+                    cssLayer: { name: "primeui", order: "theme, base, primevue, archypix;", }
                 }
-            },
-            ripple: true,
+            }
         }
     },
 

@@ -95,6 +95,7 @@ const addTagGroup = (_e: MouseEvent) => {
 
 <style lang="stylus">
 .tag-tree
+  padding .5em
   .p-tree-node-label
     width 100%
 </style>

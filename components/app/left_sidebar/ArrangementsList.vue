@@ -113,6 +113,7 @@ const addArrangement = () => {
 
 <style lang="stylus">
 .arrangement-tree
+  padding .5em
   .p-tree-node-label
     width 100%
 </style>

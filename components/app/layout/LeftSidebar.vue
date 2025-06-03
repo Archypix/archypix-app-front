@@ -86,6 +86,7 @@ const fetchAllPictures = async (deleted = false) => {
 
   .p-tabpanels
     overflow scroll
+    padding 0
 
 
 </style>

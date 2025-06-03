@@ -78,7 +78,7 @@ const handleRemoveTag = async () => {
   user-select none
 
   &.tag-group-required .tag-group, &.tag-group-required .tag-group-arrow
-    background-color var(--red-900)
+    background-color var(--p-red-900)
 
   &.tag-group-multiple
     border-radius .3em
@@ -108,13 +108,13 @@ const handleRemoveTag = async () => {
   .tag-group
     border-top-left-radius inherit
     border-bottom-left-radius inherit
-    background-color var(--slate-900)
-    color var(--slate-50)
+    background-color var(--p-slate-900)
+    color var(--p-slate-50)
     position relative
 
   .tag-group-arrow
     width .9em
-    background-color var(--slate-900)
+    background-color var(--p-slate-900)
     clip-path: polygon(0 0, 100% 50%, 0 100%, 0 0);
 
   .tag
@@ -148,7 +148,7 @@ const handleRemoveTag = async () => {
     justify-content center
 
     i
-      color var(--slate-50)
+      color var(--p-slate-50)
       opacity 0.8
       &:hover
         opacity 1

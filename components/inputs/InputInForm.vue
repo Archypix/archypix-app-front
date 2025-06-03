@@ -66,7 +66,7 @@ onMounted(() => {
     </InputGroup>
 
     <small v-if="props.small"
-           :style="props.small_error ? 'color: var(--red-700);' : ''">
+           :style="props.small_error ? 'color: var(--p-red-700);' : ''">
       {{ props.small }}
     </small>
   </div>

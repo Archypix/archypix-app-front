@@ -70,11 +70,11 @@ header
   h2
     font-size 1.5rem
     margin 0
-    color var(--primary-800)
+    color var(--p-primary-800)
 
   h2 span
     font-size .8rem
-    color var(--primary-800)
+    color var(--p-primary-800)
 
 .left, .right
   display flex
@@ -117,12 +117,12 @@ nav
         vertical-align center
         padding .4rem .7rem
         text-decoration none
-        color var(--text-color)
+        color var(--p-text-color)
 
         border-radius .5rem
-        background-color var(--surface-0)
-        border 1px solid var(--surface-300)
+        background-color var(--p-surface-0)
+        border 1px solid var(--p-surface-300)
 
         &:hover
-          background-color var(--surface-50)
+          background-color var(--p-surface-50)
 </style>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import {ref, computed, defineProps, defineEmits, onMounted, watch} from 'vue';
+import {ref, computed, onMounted, watch} from 'vue';
 import {useTagsStore, type TagGroupWithTags} from '~/stores/tags';
 
 const props = defineProps<{
   pictureTags: number[];
+  asCombo?: boolean; // If true, the component will be rendered as a combo box
 }>();
 
 const emit = defineEmits<{
@@ -26,7 +27,7 @@ const currentTags = computed<{tag: Tag; tag_group: TagGroup}[]>(() => {
         return {tag, tag_group: tg.tag_group};
       }
     }
-  });
+  }).filter(Boolean) as {tag: Tag; tag_group: TagGroup}[];
 });
 
 const updateSelectedFromProps = () => {
@@ -36,9 +37,6 @@ const updateSelectedFromProps = () => {
   }
   selectedTags.value = {...selectedTags.value};
 }
-
-// Initialize selected tags from picture tags
-onMounted(updateSelectedFromProps);
 
 // Watch for changes in props.pictureTags
 watch(() => props.pictureTags, updateSelectedFromProps, {deep: true});
@@ -68,6 +66,7 @@ const convertToTreeNodes = (tagGroups: TagGroupWithTags[]) => {
 watch(tagsStore, async () => {
   await tagsStore.tags_loaded_promise;
   treeNodes.value = convertToTreeNodes(tagsStore.all_tags);
+  updateSelectedFromProps();
   loading.value = false;
 }, {immediate: true});
 
@@ -120,7 +119,7 @@ const handleNodeClick = (node: any) => {
       selectionMode="checkbox"
       filter
       placeholder="Select a tag"
-      class="tag-selector-custom-tree-select"
+      :class="[asCombo ? 'tag-selector-custom-tree-select-combo' : 'tag-selector-custom-tree-select']"
       @change="handleNodeSelect"
       @show="handleShow"
       @hide="handleClose"
@@ -189,4 +188,11 @@ div.tag-selector-custom-tree-select.p-treeselect
 
   .p-treeselect-label
     padding 0
+
+div.tag-selector-custom-tree-select-combo.p-treeselect
+  font-size .95em
+
+  .p-treeselect-label
+    padding .3em
+
 </style>

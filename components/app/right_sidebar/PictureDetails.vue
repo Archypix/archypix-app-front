@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Picture, PictureDetails} from "~/stores/pictures";
+import type {Picture, PictureDetails, Rating} from "~/types/pictures";
 import {watch} from "vue";
 
 const tagsStore = useTagsStore();

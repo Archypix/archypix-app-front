@@ -1,4 +1,4 @@
-import type { PictureOrientation } from '~/stores/pictures';
+import type { PictureOrientation } from '~/types/pictures';
 
 // Arrangement strategies
 export interface ArrangementStrategy {

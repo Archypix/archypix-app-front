@@ -10,6 +10,9 @@ const pictures_store = usePicturesStore();
     <div v-if="pictures_store.config_component?.selector === 'tag_group' && !isString(pictures_store.config_component?.values[0])">
       <TagGroupConfigPane :tag-group-id="pictures_store.config_component?.values[0]" />
     </div>
+    <div v-else-if="pictures_store.config_component?.selector === 'arrangement' && !isString(pictures_store.config_component?.values[0])">
+      <ArrangementConfigPane :arrangement-id="pictures_store.config_component?.values[0]" />
+    </div>
     <div v-else>
       <h1>Configuration</h1>
       <p>Please select a configuration option from the sidebar.</p>

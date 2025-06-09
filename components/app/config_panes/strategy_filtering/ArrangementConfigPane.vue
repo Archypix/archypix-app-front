@@ -73,6 +73,15 @@ const testFilter = ref<StrategyFiltering>({
             }
           ]
         }
+      },
+      {
+        Not: {
+          value: {
+            Filter: {
+              IncludeTags: [2, 12],
+            }
+          }
+        },
       }
     ]
   }
@@ -170,6 +179,11 @@ const updateUnicity = (value: boolean) => {
   currentArrangement.value.arrangement.strategy.preserve_unicity = value;
 };
 
+const updateFilter = (filter: StrategyFiltering) => {
+  //if (!currentArrangement.value || !currentArrangement.value.arrangement.strategy) return;
+  testFilter.value = filter;
+};
+
 </script>
 
 <template>
@@ -233,6 +247,7 @@ const updateUnicity = (value: boolean) => {
           <div class="flex flex-col gap-3">
             <StrategyFilteringTree
                 :filter="testFilter"
+                @update:filter="updateFilter"
             />
           </div>
         </template>

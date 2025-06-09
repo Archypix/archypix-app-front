@@ -14,6 +14,10 @@ const props = defineProps<{
   filter: StrategyFiltering,
 }>();
 
+const emit = defineEmits<{
+  (e: 'update:filter', value: StrategyFiltering): void;
+}>();
+
 const tree = ref<StrategyFilteringNode>();
 
 const buildTree = () => {
@@ -54,17 +58,39 @@ const buildTree = () => {
   tree.value = toTreeNode(props.filter);
 };
 
+const unbuildTree = (node: StrategyFilteringNode): StrategyFiltering => {
+  if (node.type === 'Filter') {
+    return {Filter: node.filter!};
+  } else if (node.type === 'Or') {
+    return {Or: {value: node.children!.map(unbuildTree)}};
+  } else if (node.type === 'And') {
+    return {And: {value: node.children!.map(unbuildTree)}};
+  } else if (node.type === 'Not') {
+    return {Not: {value: unbuildTree(node.children![0])}};
+  }
+  return {} as StrategyFiltering;
+}
+
 watch(props, () => {
   buildTree();
 }, {immediate: true});
 
 
+const updateRootFilter = (filter: StrategyFilteringNode) => {
+  emit('update:filter', unbuildTree(filter));
+};
+
+
+
 </script>
 
 <template>
-  <ul>
+  <ul v-if="tree">
     <StrategyFilteringNode
         :filter="tree"
+        :is-only-child="false"
+        :parent-type="''"
+        @update:filter="updateRootFilter"
     />
   </ul>
 </template>

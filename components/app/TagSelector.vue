@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {ref, computed, onMounted, watch} from 'vue';
-import {useTagsStore, type TagGroupWithTags} from '~/stores/tags';
+import {computed, ref, watch} from 'vue';
+import {type TagGroupWithTags, useTagsStore} from '~/stores/tags';
 
 const props = defineProps<{
   pictureTags: number[];
@@ -19,7 +19,7 @@ const loading = ref(true);
 const expandedKeys = ref({});
 const isOpen = ref(false);
 
-const currentTags = computed<{tag: Tag; tag_group: TagGroup}[]>(() => {
+const currentTags = computed<{ tag: Tag; tag_group: TagGroup }[]>(() => {
   return props.pictureTags.map(tagId => {
     for (const tg of tagsStore.all_tags) {
       const tag = tg.tags.find(t => t.id === tagId);
@@ -27,12 +27,13 @@ const currentTags = computed<{tag: Tag; tag_group: TagGroup}[]>(() => {
         return {tag, tag_group: tg.tag_group};
       }
     }
-  }).filter(Boolean) as {tag: Tag; tag_group: TagGroup}[];
+  }).filter(Boolean) as { tag: Tag; tag_group: TagGroup }[];
 });
 
 const updateSelectedFromProps = () => {
   selectedTags.value = {};
   for (const tagId of props.pictureTags) {
+    if (!tagsStore.all_tags.some(tg => tg.tags.some(t => t.id === tagId))) continue;
     selectedTags.value[tagId] = {checked: true, partialChecked: false};
   }
   selectedTags.value = {...selectedTags.value};
@@ -118,7 +119,7 @@ const handleNodeClick = (node: any) => {
       :loading="loading"
       selectionMode="checkbox"
       filter
-      placeholder="Select a tag"
+      placeholder="Select tags"
       :class="[asCombo ? 'tag-selector-custom-tree-select-combo' : 'tag-selector-custom-tree-select']"
       @change="handleNodeSelect"
       @show="handleShow"
@@ -191,8 +192,12 @@ div.tag-selector-custom-tree-select.p-treeselect
 
 div.tag-selector-custom-tree-select-combo.p-treeselect
   font-size .95em
+  min-height 29px
+
+  .p-treeselect-label-container
+    display flex
 
   .p-treeselect-label
-    padding .3em
+    padding .3em var(--p-select-padding-x)
 
 </style>

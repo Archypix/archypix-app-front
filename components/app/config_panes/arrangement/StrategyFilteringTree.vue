@@ -1,7 +1,12 @@
 <script setup lang="ts">
 
-import type {FilterType, StrategyFiltering} from "~/types/grouping";
-import StrategyFilteringNode from "~/components/app/config_panes/strategy_filtering/StrategyFilteringNode.vue";
+import {
+  type FilterType, getFilterType,
+  getStrategyFilteringChildren,
+  isStrategyFilteringFilter,
+  type StrategyFiltering
+} from "~/types/grouping";
+import StrategyFilteringNode from "./filtering/StrategyFilteringNode.vue";
 
 export interface StrategyFilteringNode {
   key: string,
@@ -22,39 +27,18 @@ const tree = ref<StrategyFilteringNode>();
 
 const buildTree = () => {
 
-  const getFilterType = (filter: StrategyFiltering): string => {
-    if ('Filter' in filter) {
-      return 'Filter';
-    }
-    if ('Or' in filter) {
-      return 'Or';
-    }
-    if ('And' in filter) {
-      return 'And';
-    }
-    if ('Not' in filter) {
-      return 'Not';
-    }
-    return '';
-  }
-
   const toTreeNode = (filtering: StrategyFiltering, parentKey?: string, index: number = 0): StrategyFilteringNode => {
     const key = (parentKey ? `${parentKey}-` : ``) + `${index}`;
     const type = getFilterType(filtering);
-    if (type == 'Filter') {
-      const filter: FilterType = filtering[type];
+    if (isStrategyFilteringFilter(filtering)) {
+      const filter: FilterType = filtering.Filter;
       return {key, type, filter};
-    } else if (type == 'Not') {
-      const subFilter: StrategyFiltering = filtering[type].value;
-      const children = [toTreeNode(subFilter, key, 0)];
-      return {key, type, children};
     } else {
-      const subFilters: StrategyFiltering[] = filtering[type].value;
+      const subFilters = getStrategyFilteringChildren(filtering);
       const children = subFilters.map((f, i) => toTreeNode(f, key, i));
       return {key, type, children};
     }
   }
-
   tree.value = toTreeNode(props.filter);
 };
 

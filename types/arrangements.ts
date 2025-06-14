@@ -1,4 +1,4 @@
-import type {ArrangementStrategy, StrategyFiltering} from './grouping';
+import type {ArrangementStrategy, StrategyFiltering, StrategyGrouping, StrategyGroupingMap} from './grouping';
 
 // Response types
 export interface ArrangementResponse {
@@ -33,14 +33,35 @@ export interface ArrangementStrategyRequest {
   preserve_unicity: boolean;
 }
 
-export type StrategyGroupingRequest =
-    | { GroupByFilter: FilterGroupingRequest }
-    | { GroupByTags: TagGroupingRequest };
+export interface StrategyGroupingRequestMap {
+  GroupByFilter: FilterGroupingRequest;
+  GroupByTags: TagGroupingRequest;
+}
+export const getGroupingRequestType = (grouping: StrategyGroupingRequest): keyof StrategyGroupingRequestMap => {
+  if ('GroupByFilter' in grouping) {
+    return 'GroupByFilter';
+  }
+  if ('GroupByTags' in grouping) {
+    return 'GroupByTags';
+  }
+  throw new Error('Invalid StrategyGroupingRequest type');
+}
+
+export type StrategyGroupingRequest = {
+  [K in keyof StrategyGroupingRequestMap]: { [P in K]: StrategyGroupingRequestMap[K] };
+}[keyof StrategyGroupingRequestMap];
 
 export interface TagGroupingRequest {
   tag_group_id: number;
   group_names_format: string;
 }
+
 export interface FilterGroupingRequest {
-  filters: Record<string, StrategyFiltering>; // Key is the group name, value is the filter
+  filters: FilterGroupingValueRequest[];
+}
+
+export interface FilterGroupingValueRequest {
+  id: number;
+  name: string;
+  filter: StrategyFiltering;
 }

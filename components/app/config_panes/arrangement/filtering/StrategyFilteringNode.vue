@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import type {StrategyFilteringNode} from "~/components/app/config_panes/strategy_filtering/StrategyFilteringTree.vue";
+import type {StrategyFilteringNode} from "~/components/app/config_panes/arrangement/StrategyFilteringTree.vue";
 import type {FilterType} from "~/types/grouping";
 import {computed, ref} from "vue";
 
@@ -218,7 +218,7 @@ const addMenuModel = [
           @update:filter="updateSelf" @update:delete="$emit('update:delete')" @wrap-into="wrapInto" @unwrap="$emit('unwrap')"/>
     </div>
     <div v-else class="w-full flex items-stretch gap-1">
-      <div class="type-bar w-10 flex flex-col items-center justify-between content-center">
+      <div class="type-bar text-white rounded-md w-10 flex flex-col items-center justify-between content-center">
         <Button v-if='isOrAnd' class="p-button p-button-contrast" icon="pi pi-ellipsis-v" @click="optionsMenu.toggle($event)"/>
         <div v-else></div>
         <Menu v-if='isOrAnd' ref="optionsMenu" :model="optionsMenuModel" :popup="true"/>
@@ -244,13 +244,6 @@ const addMenuModel = [
 </template>
 
 <style scoped lang="stylus">
-
-//li.Filter
-//  border-radius: 0.25rem;
-
-div.type-bar
-  color: white;
-  border-radius: 6px;
 
 li.Or > div > div.type-bar
   background-color: var(--p-blue-400);

@@ -71,20 +71,20 @@ export const useArrangementsStore = defineStore('arrangements', () => {
      * Edit an arrangement
      * PATCH /arrangement/:arrangement_id
      * @param arrangementId The ID of the arrangement to update
-     * @param updates The fields to update
+     * @param arrangement
      */
     const updateArrangement = async (
         arrangementId: number,
-        updates: Partial<ArrangementRequest>
+        arrangement: ArrangementRequest
     ): Promise<ArrangementResponse | undefined> => {
         loading.value = true;
         error.value = null;
 
         try {
-            const response = await usePatchApi<Partial<ArrangementRequest>, ArrangementResponse>(
+            const response = await usePatchApi<ArrangementRequest, ArrangementResponse>(
                 false,
                 `/arrangement/${arrangementId}`,
-                updates
+                arrangement
             );
 
             if (response) {
@@ -136,7 +136,7 @@ export const useArrangementsStore = defineStore('arrangements', () => {
     });
 
     // CONVERSION FUNCTIONS
-    
+
     /**
      * Get arrangement name by ID
      * @param arrangementId The ID of the arrangement
@@ -187,7 +187,7 @@ export const useArrangementsStore = defineStore('arrangements', () => {
         await arrangementsLoadedPromise;
         const arrangement = arrangements.value.find(a => a.arrangement.id === arrangementId);
         if (!arrangement) return null;
-        
+
         const allGroups = [...arrangement.groups, ...arrangement.to_be_deleted_groups];
         const group = allGroups.find(
             g => g.name.toLowerCase() === groupName.toLowerCase()
@@ -227,7 +227,7 @@ export const useArrangementsStore = defineStore('arrangements', () => {
         createArrangement,
         updateArrangement,
         deleteArrangement,
-        
+
         // Conversion functions
         arrangementIdToName,
         arrangementNameToId,

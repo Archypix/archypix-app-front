@@ -4,7 +4,7 @@ import {useToastService} from "~/composables/useToastService";
 interface AllTagsResponse {
     tag_groups: TagGroupWithTags[];
 }
-export interface TagGroupWithTags {
+export interface    TagGroupWithTags {
     tag_group: TagGroup;
     tags: Tag[];
 }

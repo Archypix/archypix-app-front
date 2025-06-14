@@ -42,7 +42,7 @@ const handleRemoveTag = async () => {
        @mouseleave="isHovering = false">
 
     <div class="tag-el tag-group" v-if="!props.tag_only">
-      <span class="tag-group-name">{{ props.tag_group.name }}</span>
+      <span class="tag-group-name">{{ props.tag_group.name }} ({{ props.tag_group.id }})</span>
     </div>
     <div class="tag-group-arrow" v-if="!props.tag_only"/>
 
@@ -53,7 +53,7 @@ const handleRemoveTag = async () => {
               'tag-default': props.tag.is_default,
             }"
           :style="{color: isHovering ? 'transparent' : 'rgb(' + props.tag.color.join(',') + ')'}"
-      >{{ props.tag.name }}</span>
+      >{{ props.tag.name }} ({{ props.tag.id }})</span>
 
       <button v-if="isHovering"
               class="remove-tag-btn"

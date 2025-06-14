@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from 'vue';
-import {useTagsStore} from '~/stores/tags';
 import {useArrangementsStore} from '~/stores/arrangements';
 import TagSelector from '~/components/app/TagSelector.vue';
-import type {FilterType} from '~/types/grouping';
+import {type ExifFieldTypeMap, extractExifDataTypeAndValue, type FilterType, makeExifDataTypeValue} from '~/types/grouping';
+import type {ValueOf} from "~/composables/tsUtils";
 
 const props = defineProps<{
   filter: FilterType;
@@ -18,7 +18,6 @@ const emit = defineEmits<{
   (e: 'unwrap'): void;
 }>();
 
-const tagsStore = useTagsStore();
 const arrangementsStore = useArrangementsStore();
 
 // Available filter types
@@ -50,8 +49,8 @@ const availableExifFields = [
 const selectedFilterType = ref<string>('');
 const selectedTags = ref<number[]>([]);
 const selectedGroups = ref<number[]>([]);
-const selectedExifField = ref<string>('');
-const exifValue = ref<any>(null);
+const selectedExifField = ref<keyof ExifFieldTypeMap>("CreationDate");
+const exifValue = ref<any>("");
 
 // Computed properties for EXIF field types
 const isTextExifField = computed(() => {
@@ -93,9 +92,9 @@ onMounted(() => {
     selectedGroups.value = [...props.filter.IncludeGroups];
   } else if ('ExifEqualTo' in props.filter) {
     selectedFilterType.value = 'ExifEqualTo';
-    const exifKey = Object.keys(props.filter.ExifEqualTo)[0] as string;
-    selectedExifField.value = exifKey;
-    exifValue.value = props.filter.ExifEqualTo[exifKey][0]; // Get first value
+    const [key, value] = extractExifDataTypeAndValue(props.filter.ExifEqualTo);
+    selectedExifField.value = key;
+    exifValue.value = value[0]; // Get first value
   }
 });
 
@@ -104,15 +103,15 @@ const onFilterTypeChange = () => {
   // Reset values when filter type changes
   selectedTags.value = [];
   selectedGroups.value = [];
-  selectedExifField.value = '';
-  exifValue.value = null;
+  selectedExifField.value = 'CreationDate';
+  exifValue.value = "";
   updateFilter();
 };
 
 const updateTags = (tagsToAdd: number[], tagsToRemove: number[]) => {
   selectedTags.value = selectedTags.value.filter(tag => !tagsToRemove.includes(tag));
   selectedTags.value.push(...tagsToAdd.filter(tag => !selectedTags.value.includes(tag)));
-  selectedTags.value = [...new Set(selectedTags.value)]; // Ensure unique tags
+  selectedTags.value = [...new Set(selectedTags.value)]; // Ensure uniques tags
   console.log('Updated tags:', selectedTags.value);
   updateFilter();
 };
@@ -122,7 +121,7 @@ const onGroupsChange = () => {
 };
 
 const onExifFieldChange = () => {
-  exifValue.value = null;
+  exifValue.value = "";
   updateFilter();
 };
 
@@ -144,9 +143,7 @@ const updateFilter = () => {
     case 'ExifEqualTo':
       if (selectedExifField.value && exifValue.value !== null) {
         newValue = {
-          ExifEqualTo: {
-            [selectedExifField.value]: [exifValue.value]
-          }
+          ExifEqualTo: makeExifDataTypeValue(selectedExifField.value, exifValue.value),
         };
       }
       break;

@@ -176,9 +176,13 @@ export const useUserStore = defineStore('user', () => {
             })
     }
 
+    const id_number = computed(() => {
+        return id.value ? parseInt(id.value) : 0;
+    })
+
 
     return {
-        status, name, email, id, auth_token,
+        status, name, email, id, id_number, auth_token,
         isLoggedIn, isUnconfirmed, isAwaitingSignInCode, isAdmin, signIn, signInWithEmail2FA, signInFromData, signUp,
         updateStatus,
         getConfirmCodeToken, setConfirmCodeToken, removeConfirmToken, confirmWithCode, confirmWithToken

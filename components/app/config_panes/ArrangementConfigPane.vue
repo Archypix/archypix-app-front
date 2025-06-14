@@ -1,8 +1,8 @@
 <script setup lang="ts">
-
-import {useArrangementsStore} from "~/stores/arrangements";
-import type {StrategyFiltering, StrategyGrouping} from "~/types/grouping";
-import type {ArrangementResponse} from "~/types/arrangements";
+import { useArrangementsStore } from "~/stores/arrangements";
+import type { StrategyFiltering } from "~/types/grouping";
+import type { ArrangementRequest, ArrangementResponse, StrategyGroupingRequest } from "~/types/arrangements";
+import StrategyGroupingConfig from "./arrangement/StrategyGroupingConfig.vue";
 
 const props = defineProps({
   arrangementId: {
@@ -14,8 +14,8 @@ const isNewArrangement = computed(() => props.arrangementId === 0);
 
 const arrangementsStore = useArrangementsStore();
 
-
 const currentArrangement = ref<ArrangementResponse | null>(null);
+const groupingRequest = ref<StrategyGroupingRequest | null>(null);
 
 const error = ref<string | null>(null);
 const isLoading = ref(true);
@@ -26,7 +26,76 @@ const loadArrangement = async () => {
   await arrangementsStore.arrangementsLoadedPromise;
 
   if (isNewArrangement.value) {
-    //currentArrangement.value = {};
+    currentArrangement.value = {
+      groups: [],
+      to_be_deleted_groups: [],
+      arrangement: {
+        id: 0,
+        user_id: 0,
+        name: "New Arrangement",
+        strong_match_conversion: false,
+        strategy: {
+          preserve_unicity: true,
+          filter: {
+            Or: {
+              value: [
+                {
+                  Filter: {
+                    IncludeTags: [8, 10],
+                  }
+                },
+                {
+                  Filter: {
+                    IncludeTags: [66, 10],
+                  }
+                },
+                {
+                  And: {
+                    value: [
+                      {
+                        Filter: {
+                          IncludeTags: [10, 21],
+                        }
+                      },
+                      {
+                        Not: {
+                          value: {
+                            Filter: {
+                              IncludeTags: [2, 12],
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  Not: {
+                    value: {
+                      Filter: {
+                        IncludeTags: [2, 12],
+                      }
+                    }
+                  },
+                }
+              ]
+            }
+          },
+          groupings: {
+            GroupByFilter: {
+              other_group_id: null,
+              filters: {
+                1: {
+                  Filter: {
+                    IncludeTags: [13],
+                  }
+                },
+              },
+            }
+          },
+        }
+      },
+    };
   } else {
     const arrangement = arrangementsStore.arrangements.find(a => a.arrangement.id === props.arrangementId);
     console.log('Editing existing arrangement', arrangement);
@@ -41,52 +110,6 @@ watch(props, () => {
   loadArrangement();
 }, {immediate: true});
 
-const testFilter = ref<StrategyFiltering>({
-  Or: {
-    value: [
-      {
-        Filter: {
-          IncludeTags: [8, 10],
-        }
-      },
-      {
-        Filter: {
-          IncludeTags: [66, 10],
-        }
-      },
-      {
-        And: {
-          value: [
-            {
-              Filter: {
-                IncludeTags: [10, 21],
-              }
-            },
-            {
-              Not: {
-                value: {
-                  Filter: {
-                    IncludeTags: [2, 12],
-                  }
-                }
-              }
-            }
-          ]
-        }
-      },
-      {
-        Not: {
-          value: {
-            Filter: {
-              IncludeTags: [2, 12],
-            }
-          }
-        },
-      }
-    ]
-  }
-});
-
 const saveArrangement = async () => {
   if (!currentArrangement.value) return;
 
@@ -95,17 +118,33 @@ const saveArrangement = async () => {
   //   return;
   // }
 
+  if(groupingRequest.value == null) {
+    error.value = "Undefined grouping strategy";
+    return;
+  }
+  error.value = null;
+
+  let arrangement: ArrangementRequest = {
+    strong_match_conversion: currentArrangement.value.arrangement.strong_match_conversion,
+    name: currentArrangement.value.arrangement.name,
+    strategy: null,
+  }
+  if (!isManual.value) {
+    arrangement.strategy = {
+      preserve_unicity: currentArrangement.value.arrangement.strategy!.preserve_unicity,
+      filter: currentArrangement.value.arrangement.strategy!.filter,
+      groupings: groupingRequest.value,
+    }
+  }
+
+  let res: ArrangementResponse | undefined;
   if (isNewArrangement.value) {
-    // TODO: build arrangement request from currentArrangement
-    // const ok = await arrangementsStore.createArrangement();
-    // if (ok) {
-    //   await usePicturesStore().back();
-    // }
+    res = await arrangementsStore.createArrangement(arrangement);
   } else {
-    // const ok = await arrangementsStore.updateArrangement();
-    // if (ok) {
-    //   await usePicturesStore().back();
-    // }
+    res = await arrangementsStore.updateArrangement(props.arrangementId, arrangement);
+  }
+  if (res) {
+    await usePicturesStore().back();
   }
 };
 const deleteArrangement = async (event: MouseEvent) => {
@@ -130,6 +169,7 @@ const deleteArrangement = async (event: MouseEvent) => {
     },
     accept: async () => {
       await arrangementsStore.deleteArrangement(props.arrangementId);
+      error.value = null;
       await usePicturesStore().back();
     }
   });
@@ -173,15 +213,13 @@ const updateSMC = (value: boolean) => {
   if (!currentArrangement.value) return;
   currentArrangement.value.arrangement.strong_match_conversion = value;
 };
-
 const updateUnicity = (value: boolean) => {
   if (!currentArrangement.value || !currentArrangement.value.arrangement.strategy) return;
   currentArrangement.value.arrangement.strategy.preserve_unicity = value;
 };
-
 const updateFilter = (filter: StrategyFiltering) => {
-  //if (!currentArrangement.value || !currentArrangement.value.arrangement.strategy) return;
-  testFilter.value = filter;
+  if (!currentArrangement.value?.arrangement.strategy) return;
+  currentArrangement.value.arrangement.strategy.filter = filter;
 };
 
 </script>
@@ -215,7 +253,7 @@ const updateFilter = (filter: StrategyFiltering) => {
         <template #content>
           <div class="flex flex-col gap-4">
             <div>
-              <label for="arrangement-name" class="font-medium block mb-2">Name</label>
+              <label for="arrangement-name" class="font-medium block mb-1">Name</label>
               <div class="flex items-center gap-3 ">
                 <InputText
                     id="arrangement-name"
@@ -246,7 +284,7 @@ const updateFilter = (filter: StrategyFiltering) => {
         <template #content>
           <div class="flex flex-col gap-3">
             <StrategyFilteringTree
-                :filter="testFilter"
+                :filter="currentArrangement.arrangement.strategy!.filter"
                 @update:filter="updateFilter"
             />
           </div>
@@ -259,13 +297,21 @@ const updateFilter = (filter: StrategyFiltering) => {
           <span class="text-base">Define how pictures are grouped in the groups of this arrangement.</span>
         </template>
         <template #content>
-          <div class="flex flex-col gap-3">
-            <div v-if="!isManual" class="flex gap-6">
-              <div class="flex items-center">
-                <ToggleSwitch :modelValue="isUnicityEnabled" @update:modelValue="updateUnicity"
-                              class="mr-2"/>
-                <label>Allow pictures to be in more than one group at once</label>
-              </div>
+          <div class="flex flex-col gap-6">
+            <div class="flex items-center">
+              <ToggleSwitch
+                :modelValue="isUnicityEnabled"
+                @update:modelValue="updateUnicity"
+                class="mr-2"
+              />
+              <label>Allow pictures to be in more than one group at once</label>
+            </div>
+
+            <div>
+              <StrategyGroupingConfig
+                :groupings="currentArrangement.arrangement.strategy!.groupings"
+                v-model:request="groupingRequest"
+              />
             </div>
           </div>
         </template>
@@ -283,6 +329,8 @@ const updateFilter = (filter: StrategyFiltering) => {
         />
       </div>
     </div>
+
+    {{currentArrangement}}
 
     <ConfirmPopup/>
     <Toast/>

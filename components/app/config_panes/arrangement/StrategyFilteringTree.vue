@@ -46,11 +46,11 @@ const unbuildTree = (node: StrategyFilteringNode): StrategyFiltering => {
   if (node.type === 'Filter') {
     return {Filter: node.filter!};
   } else if (node.type === 'Or') {
-    return {Or: {value: node.children!.map(unbuildTree)}};
+    return {Or: node.children!.map(unbuildTree)};
   } else if (node.type === 'And') {
-    return {And: {value: node.children!.map(unbuildTree)}};
+    return {And: node.children!.map(unbuildTree)};
   } else if (node.type === 'Not') {
-    return {Not: {value: unbuildTree(node.children![0])}};
+    return {Not: unbuildTree(node.children![0])};
   }
   return {} as StrategyFiltering;
 }

@@ -10,10 +10,10 @@ export interface ArrangementStrategy {
 }
 
 export type StrategyFilteringMap = {
-    Or: { value: StrategyFiltering[] }
-    And: { value: StrategyFiltering[] }
-    Not: { value: StrategyFiltering }
-    Filter: FilterType
+    Or: StrategyFiltering[];
+    And: StrategyFiltering[];
+    Not: StrategyFiltering;
+    Filter: FilterType;
 };
 
 export type StrategyFiltering = {
@@ -23,13 +23,13 @@ export type StrategyFiltering = {
 export const isStrategyFilteringFilter = (filter: StrategyFiltering): filter is { Filter: FilterType } => {
     return 'Filter' in filter;
 };
-export const isStrategyFilteringNot = (filter: StrategyFiltering): filter is { Not: { value: StrategyFiltering } } => {
+export const isStrategyFilteringNot = (filter: StrategyFiltering): filter is { Not: StrategyFiltering } => {
     return 'Not' in filter;
 };
-export const isStrategyFilteringAnd = (filter: StrategyFiltering): filter is { And: { value: StrategyFiltering[] } } => {
+export const isStrategyFilteringAnd = (filter: StrategyFiltering): filter is { And: StrategyFiltering[] } => {
     return 'And' in filter;
 };
-export const isStrategyFilteringOr = (filter: StrategyFiltering): filter is { Or: { value: StrategyFiltering[] } } => {
+export const isStrategyFilteringOr = (filter: StrategyFiltering): filter is { Or: StrategyFiltering[] } => {
     return 'Or' in filter;
 };
 export const getFilterType = (filter: StrategyFiltering): keyof StrategyFilteringMap => {
@@ -49,13 +49,13 @@ export const getFilterType = (filter: StrategyFiltering): keyof StrategyFilterin
 }
 export const getStrategyFilteringChildren = (filter: StrategyFiltering): StrategyFiltering[] => {
     if (isStrategyFilteringAnd(filter)) {
-        return filter.And.value;
+        return filter.And;
     }
     if (isStrategyFilteringOr(filter)) {
-        return filter.Or.value;
+        return filter.Or;
     }
     if (isStrategyFilteringNot(filter)) {
-        return [filter.Not.value];
+        return [filter.Not];
     }
     return [];
 };

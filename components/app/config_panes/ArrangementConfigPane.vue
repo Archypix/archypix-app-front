@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useArrangementsStore } from "~/stores/arrangements";
-import type { StrategyFiltering } from "~/types/grouping";
-import type { ArrangementRequest, ArrangementResponse, StrategyGroupingRequest } from "~/types/arrangements";
+import {useArrangementsStore} from "~/stores/arrangements";
+import type {StrategyFiltering} from "~/types/grouping";
+import type {ArrangementRequest, ArrangementResponse, StrategyGroupingRequest} from "~/types/arrangements";
 import StrategyGroupingConfig from "./arrangement/StrategyGroupingConfig.vue";
 
 const props = defineProps({
@@ -22,36 +22,34 @@ const isLoading = ref(true);
 const confirm = useConfirm();
 
 const loadArrangement = async () => {
-  isLoading.value = true;
-  await arrangementsStore.arrangementsLoadedPromise;
+      isLoading.value = true;
+      await arrangementsStore.arrangementsLoadedPromise;
 
-  if (isNewArrangement.value) {
-    currentArrangement.value = {
-      groups: [],
-      to_be_deleted_groups: [],
-      arrangement: {
-        id: 0,
-        user_id: 0,
-        name: "New Arrangement",
-        strong_match_conversion: false,
-        strategy: {
-          preserve_unicity: true,
-          filter: {
-            Or: {
-              value: [
-                {
-                  Filter: {
-                    IncludeTags: [8, 10],
-                  }
-                },
-                {
-                  Filter: {
-                    IncludeTags: [66, 10],
-                  }
-                },
-                {
-                  And: {
-                    value: [
+      if (isNewArrangement.value) {
+        currentArrangement.value = {
+          groups: [],
+          to_be_deleted_groups: [],
+          arrangement: {
+            id: 0,
+            user_id: 0,
+            name: "New Arrangement",
+            strong_match_conversion: false,
+            strategy: {
+              preserve_unicity: true,
+              filter: {
+                Or: [
+                  {
+                    Filter: {
+                      IncludeTags: [8, 10],
+                    }
+                  },
+                  {
+                    Filter: {
+                      IncludeTags: [66, 10],
+                    }
+                  },
+                  {
+                    And: [
                       {
                         Filter: {
                           IncludeTags: [10, 21],
@@ -59,52 +57,48 @@ const loadArrangement = async () => {
                       },
                       {
                         Not: {
-                          value: {
-                            Filter: {
-                              IncludeTags: [2, 12],
-                            }
+                          Filter: {
+                            IncludeTags: [2, 12],
                           }
                         }
                       }
                     ]
-                  }
-                },
-                {
-                  Not: {
-                    value: {
+                  },
+                  {
+                    Not: {
                       Filter: {
                         IncludeTags: [2, 12],
                       }
-                    }
-                  },
-                }
-              ]
-            }
-          },
-          groupings: {
-            GroupByFilter: {
-              other_group_id: null,
-              filters: {
-                1: {
-                  Filter: {
-                    IncludeTags: [13],
+                    },
                   }
-                },
+                ]
               },
+              groupings: {
+                GroupByFilter: {
+                  other_group_id: null,
+                  filters: [
+                    {
+                      Filter: {
+                        IncludeTags: [13],
+                      }
+                    }
+                  ]
+                }
+              }
             }
-          },
+          }
         }
-      },
-    };
-  } else {
-    const arrangement = arrangementsStore.arrangements.find(a => a.arrangement.id === props.arrangementId);
-    console.log('Editing existing arrangement', arrangement);
-    if (arrangement) {
-      currentArrangement.value = arrangement;
+        ;
+      } else {
+        const arrangement = arrangementsStore.arrangements.find(a => a.arrangement.id === props.arrangementId);
+        console.log('Editing existing arrangement', arrangement);
+        if (arrangement) {
+          currentArrangement.value = arrangement;
+        }
+      }
+      isLoading.value = false;
     }
-  }
-  isLoading.value = false;
-};
+;
 
 watch(props, () => {
   loadArrangement();
@@ -118,7 +112,7 @@ const saveArrangement = async () => {
   //   return;
   // }
 
-  if(groupingRequest.value == null) {
+  if (groupingRequest.value == null) {
     error.value = "Undefined grouping strategy";
     return;
   }
@@ -300,17 +294,17 @@ const updateFilter = (filter: StrategyFiltering) => {
           <div class="flex flex-col gap-6">
             <div class="flex items-center">
               <ToggleSwitch
-                :modelValue="isUnicityEnabled"
-                @update:modelValue="updateUnicity"
-                class="mr-2"
+                  :modelValue="isUnicityEnabled"
+                  @update:modelValue="updateUnicity"
+                  class="mr-2"
               />
               <label>Allow pictures to be in more than one group at once</label>
             </div>
 
             <div>
               <StrategyGroupingConfig
-                :groupings="currentArrangement.arrangement.strategy!.groupings"
-                v-model:request="groupingRequest"
+                  :groupings="currentArrangement.arrangement.strategy!.groupings"
+                  v-model:request="groupingRequest"
               />
             </div>
           </div>
@@ -330,7 +324,7 @@ const updateFilter = (filter: StrategyFiltering) => {
       </div>
     </div>
 
-    {{currentArrangement}}
+    {{ currentArrangement }}
 
     <ConfirmPopup/>
     <Toast/>

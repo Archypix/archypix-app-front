@@ -93,6 +93,8 @@ export const useArrangementsStore = defineStore('arrangements', () => {
                 if (index !== -1) {
                     arrangements.value[index] = response;
                     arrangements.value = arrangements.value;
+                    console.log('Updated arrangement:', response);
+                    console.log('Updated arrangements:', arrangements.value);
                 }
 
                 useToastService().success('Arrangement updated successfully');

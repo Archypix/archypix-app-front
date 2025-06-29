@@ -51,8 +51,7 @@ const expandAll = () => {
   expandedKeys.value = { ...expandedKeys.value };
 };
 
-watch(
-  () => arrangementsStore.arrangementsLoadedPromise,
+watch(arrangementsStore,
   async () => {
     await arrangementsStore.arrangementsLoadedPromise;
     buildArrangementsTree();

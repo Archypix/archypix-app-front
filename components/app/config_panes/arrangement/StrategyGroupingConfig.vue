@@ -8,6 +8,7 @@ import TagGroupingConfig from './grouping/TagGroupingConfig.vue';
 const props = defineProps<{
   groupings: StrategyGrouping;
   request: StrategyGroupingRequest | null;
+  preserve_unicity: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -33,13 +34,15 @@ const groupingTypes: GroupingType = {
       filters: []
     }),
     createFromStrategyGrouping: async (grouping: FilterGrouping): Promise<FilterGroupingRequest> => {
+      console.log("grouping", grouping);
       const filters = await Promise.all(
-          Object.entries(grouping.filters).map(async ([idStr, filter]) => {
+          grouping.filters.map(async ([idStr, filter]) => {
             const id = Number(idStr);
             const name = await arrangementsStore.groupIdToGroupName(id) || `Group of id ${id}`;
             return {id, name, filter};
           })
       );
+      console.log('filters', filters);
       return {filters};
     },
     data: ref<FilterGroupingRequest>({filters: []})
@@ -105,6 +108,7 @@ watch(() => props.groupings, async (grouping) => {
     <div class="mt-4">
       <component
           :is="groupingTypes[currentType].component"
+          :preserve-unicity="preserve_unicity"
           v-model:grouping="currentGrouping"
       />
     </div>

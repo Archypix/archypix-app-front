@@ -5,6 +5,7 @@ import StrategyFilteringTree from '../StrategyFilteringTree.vue';
 
 const props = defineProps<{
   grouping: FilterGroupingRequest;
+  preserveUnicity: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -33,6 +34,28 @@ const deleteFilterGroup = (groupId: number) => {
   emit('update:grouping', props.grouping);
 };
 
+// Move a group up in the list
+const moveGroupUp = (group: any) => {
+  const index = props.grouping.filters.indexOf(group);
+  if (index > 0) {
+    const newFilters = [...props.grouping.filters];
+    [newFilters[index - 1], newFilters[index]] = [newFilters[index], newFilters[index - 1]];
+    props.grouping.filters = newFilters;
+    emit('update:grouping', props.grouping);
+  }
+};
+
+// Move a group down in the list
+const moveGroupDown = (group: any) => {
+  const index = props.grouping.filters.indexOf(group);
+  if (index < props.grouping.filters.length - 1) {
+    const newFilters = [...props.grouping.filters];
+    [newFilters[index], newFilters[index + 1]] = [newFilters[index + 1], newFilters[index]];
+    props.grouping.filters = newFilters;
+    emit('update:grouping', props.grouping);
+  }
+};
+
 </script>
 
 <template>
@@ -45,14 +68,36 @@ const deleteFilterGroup = (groupId: number) => {
     >
       <div class="flex justify-between items-center mb-2">
         <div class="flex items-center justify-start gap-2">
-          <span class="font-medium">{{group.name}} ({{group.id}})</span>
+          <InputText
+              v-model="group.name"
+              class="w-full"
+              @change="() => emit('update:grouping', grouping)"
+          />
+          <span class="font-medium">({{group.id}})</span>
           <Tag value="New" v-if="group.id <= 0"></Tag>
         </div>
-        <Button
-            icon="pi pi-times"
-            class="p-button-text p-button-danger p-button-sm"
-            @click="deleteFilterGroup(group.id)"
-        />
+        <div class="flex items-center gap-1">
+          <Button
+              icon="pi pi-arrow-up"
+              class="p-button-text p-button-sm"
+              :disabled="grouping.filters.indexOf(group) === 0"
+              @click="moveGroupUp(group)"
+              v-tooltip.top="'Raise priority'"
+          />
+          <Button
+              icon="pi pi-arrow-down"
+              class="p-button-text p-button-sm"
+              :disabled="grouping.filters.indexOf(group) === grouping.filters.length - 1"
+              @click="moveGroupDown(group)"
+              v-tooltip.top="'Lower priority'"
+          />
+          <Button
+              icon="pi pi-times"
+              class="p-button-text p-button-danger p-button-sm"
+              @click="deleteFilterGroup(group.id)"
+              v-tooltip.top="'Delete group'"
+          />
+        </div>
       </div>
       <StrategyFilteringTree
           v-model:filter="group.filter"

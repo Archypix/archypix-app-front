@@ -156,48 +156,6 @@ export const useTagsStore = defineStore('tags', () => {
 
     /// PICTURE TAG FUNCTIONS
 
-    /**
-     * Add a tag to a list of pictures
-     * If the tag is not multiple, any picture already having a tag of the same tag group will lose the old tag in favor of the new one.
-     * @param tagId The ID of the tag to add
-     * @param pictureIds The IDs of the pictures to add the tag to
-     */
-    const addTagToPictures = async (tagId: number, pictureIds: number[]): Promise<boolean> => {
-        try {
-            const payload: TagIdWithPictureIds = {
-                tag_id: tagId,
-                picture_ids: pictureIds
-            };
-            await usePostApi<TagIdWithPictureIds, void>(false, '/add_tag_to_picture', payload);
-            useToastService().success("Successfully added tag to pictures");
-            return true;
-        } catch (error) {
-            useToastService().apiError(error as ApiError, "Failed to add tag to pictures");
-            return false;
-        }
-    }
-
-    /**
-     * Remove a tag from a list of pictures
-     * If the tag is required, the picture will be tagged with the default tag of the tag group.
-     * @param tagId The ID of the tag to remove
-     * @param pictureIds The IDs of the pictures to remove the tag from
-     */
-    const removeTagFromPictures = async (tagId: number, pictureIds: number[]): Promise<boolean> => {
-        try {
-            const payload: TagIdWithPictureIds = {
-                tag_id: tagId,
-                picture_ids: pictureIds
-            };
-            await useDeleteApi<TagIdWithPictureIds, void>(false, '/remove_tag_from_picture', payload);
-            useToastService().success("Successfully removed tag from pictures");
-            return true;
-        } catch (error) {
-            useToastService().apiError(error as ApiError, "Failed to remove tag from pictures");
-            return false;
-        }
-    }
-
     const editPicturesTags = async (picturesIds: number[], add_tag_ids: number[], remove_tag_ids: number[]): Promise<number[] | null> => {
         try {
             const payload = {
@@ -271,8 +229,6 @@ export const useTagsStore = defineStore('tags', () => {
         editTagGroup,
         deleteTagGroup,
         // Picture tag functions
-        addTagToPictures,
-        removeTagFromPictures,
         editPicturesTags,
         // Conversion functions
         tagIdToTagName,

@@ -177,7 +177,7 @@ const isSMCEnabled = computed(() => {
   return currentArrangement.value?.arrangement.strong_match_conversion ?? false;
 });
 
-const isUnicityEnabled = computed(() => {
+const preserve_unicity = computed(() => {
   return currentArrangement.value?.arrangement.strategy?.preserve_unicity ?? false;
 });
 
@@ -207,7 +207,7 @@ const updateSMC = (value: boolean) => {
   if (!currentArrangement.value) return;
   currentArrangement.value.arrangement.strong_match_conversion = value;
 };
-const updateUnicity = (value: boolean) => {
+const update_preserve_unicity = (value: boolean) => {
   if (!currentArrangement.value || !currentArrangement.value.arrangement.strategy) return;
   currentArrangement.value.arrangement.strategy.preserve_unicity = value;
 };
@@ -294,16 +294,20 @@ const updateFilter = (filter: StrategyFiltering) => {
           <div class="flex flex-col gap-6">
             <div class="flex items-center">
               <ToggleSwitch
-                  :modelValue="isUnicityEnabled"
-                  @update:modelValue="updateUnicity"
+                  :modelValue="preserve_unicity"
+                  @update:modelValue="update_preserve_unicity"
                   class="mr-2"
               />
-              <label>Allow pictures to be in more than one group at once</label>
+              <label>Allow pictures to be in more than one group at once
+                <i class="pi pi-info-circle text-red-700 ml-1"
+                   v-tooltip.bottom="'Must be disabled for the arrangement to be used in a hierarchy. If enabled, the filters will be evaluated in the configured order.'"></i>
+              </label>
             </div>
 
             <div>
               <StrategyGroupingConfig
                   :groupings="currentArrangement.arrangement.strategy!.groupings"
+                  :preserve_unicity="preserve_unicity"
                   v-model:request="groupingRequest"
               />
             </div>

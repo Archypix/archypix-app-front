@@ -149,9 +149,9 @@ export interface TagGrouping {
 }
 
 export interface FilterGrouping {
-    filters: {
-        [groupId: number]: StrategyFiltering
-    },
+    filters: [
+        [number, StrategyFiltering]
+    ],
     other_group_id: number | null; // Id of the group for the pictures that do not match any filter
 }
 

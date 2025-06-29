@@ -19,7 +19,7 @@ const emit = defineEmits<{
     <div class="flex gap-2">
       <Button
         icon="pi pi-pencil"
-        class="p-button-text p-button-sm"
+        :class="['p-button-text', 'p-button-sm']"
         @click.stop="emit('edit')"
         v-tooltip.top="'Edit arrangement'"
       />

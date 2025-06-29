@@ -21,7 +21,7 @@ const handleRemoveTag = async () => {
 
   isRemoving.value = true;
   try {
-    await tagsStore.removeTagFromPictures(props.tag.id, [props.picture_id]);
+    await tagsStore.editPicturesTags([props.picture_id], [], [props.tag.id]);
   } finally {
     isRemoving.value = false;
     emit('update');

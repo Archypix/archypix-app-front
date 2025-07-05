@@ -77,11 +77,11 @@ const loadArrangement = async () => {
                 GroupByFilter: {
                   other_group_id: null,
                   filters: [
-                    {
+                    [0, {
                       Filter: {
                         IncludeTags: [13],
                       }
-                    }
+                    }]
                   ]
                 }
               }
@@ -294,13 +294,14 @@ const updateFilter = (filter: StrategyFiltering) => {
           <div class="flex flex-col gap-6">
             <div class="flex items-center">
               <ToggleSwitch
+                  :id="'preserve-unicity'"
                   :modelValue="preserve_unicity"
                   @update:modelValue="update_preserve_unicity"
                   class="mr-2"
               />
-              <label>Allow pictures to be in more than one group at once
+              <label for="preserve-unicity">Prevent pictures from being assigned to multiple groups at the same time
                 <i class="pi pi-info-circle text-red-700 ml-1"
-                   v-tooltip.bottom="'Must be disabled for the arrangement to be used in a hierarchy. If enabled, the filters will be evaluated in the configured order.'"></i>
+                   v-tooltip.bottom="'Must be enabled for the arrangement to be used in a hierarchy.'"></i>
               </label>
             </div>
 

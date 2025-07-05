@@ -36,7 +36,7 @@ const buildArrangementsTree = () => {
       key: `group=${arrangement.arrangement.id}:${group.id}`,
       group,
       arrangement,
-    })),
+    })).sort((a, b) => a.group.name.localeCompare(b.group.name)),
   }));
 };
 

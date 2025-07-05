@@ -1,33 +1,28 @@
 <script setup lang="ts">
 
-import type {ListPictureData} from "~/stores/pictures";
+import type {ListPictureData} from "~/types/pictures";
 
 let pictures_store = usePicturesStore()
 
 const click_picture = (e: MouseEvent, picture: ListPictureData) => {
-  if (!e.ctrlKey && !e.metaKey) {
-    if (pictures_store.selected_pictures.length == 1 && pictures_store.selected_pictures.includes(picture.id)) {
-      pictures_store.selected_pictures = []
-    } else {
-      pictures_store.selected_pictures = [picture.id]
-    }
-    return
+  if (e.ctrlKey ||e.metaKey) {
+    pictures_store.select_toggle(picture.id)
+  }else if(e.shiftKey) {
+    pictures_store.select_to(picture.id)
+  }else {
+    pictures_store.select(picture.id)
   }
-  if (pictures_store.selected_pictures.includes(picture.id)) {
-    pictures_store.selected_pictures = pictures_store.selected_pictures.filter(id => id != picture.id)
-  } else {
-    pictures_store.selected_pictures.push(picture.id)
-  }
+
 }
 
 </script>
 
 <template>
   <ul>
-    <PictureListElement @click="e => click_picture(e, data)"
+    <PictureListElement v-for="data in pictures_store.pictures"
+                        @click="e => click_picture(e, data)"
                         :picture="data"
                         :selected="pictures_store.selected_pictures.includes(data.id)"
-                        v-for="data in pictures_store.pictures"
                         :key="data.id"/>
   </ul>
 </template>

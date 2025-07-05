@@ -12,7 +12,7 @@ const emit = defineEmits<{
   (e: 'update:grouping', value: FilterGroupingRequest): void;
 }>();
 
-const newGroupCounter = ref(0);
+const newGroupCounter = ref(100);
 
 // Add a new filter group
 const addFilterGroup = () => {

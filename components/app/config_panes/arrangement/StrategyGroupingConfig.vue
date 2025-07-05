@@ -34,7 +34,7 @@ const groupingTypes: GroupingType = {
       filters: []
     }),
     createFromStrategyGrouping: async (grouping: FilterGrouping): Promise<FilterGroupingRequest> => {
-      console.log("grouping", grouping);
+      console.log("grouping", grouping, grouping.filters);
       const filters = await Promise.all(
           grouping.filters.map(async ([idStr, filter]) => {
             const id = Number(idStr);

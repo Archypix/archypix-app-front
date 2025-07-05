@@ -13,21 +13,25 @@ const emit = defineEmits<{
 
 
 const tagsStore = useTagsStore();
-const selectedTags = ref({});
+const selectedTags = ref<Record<number, { checked: boolean; partialChecked: boolean }>>({});
 const treeNodes = ref([]);
 const loading = ref(true);
 const expandedKeys = ref({});
 const isOpen = ref(false);
 
 const currentTags = computed<{ tag: Tag; tag_group: TagGroup }[]>(() => {
-  return props.pictureTags.map(tagId => {
-    for (const tg of tagsStore.all_tags) {
-      const tag = tg.tags.find(t => t.id === tagId);
-      if (tag) {
-        return {tag, tag_group: tg.tag_group};
+  return props.pictureTags
+    .map(tagId => {
+      for (const tg of tagsStore.all_tags) {
+        const tag = tg.tags.find(t => t.id === tagId);
+        if (tag) {
+          return {tag, tag_group: tg.tag_group};
+        }
       }
-    }
-  }).filter(Boolean) as { tag: Tag; tag_group: TagGroup }[];
+    })
+    .filter(Boolean)
+    .filter((tag) => tag !== undefined)
+    .sort((a, b) => a.tag_group.name.localeCompare(b.tag_group.name) || a.tag.name.localeCompare(b.tag.name)) as { tag: Tag; tag_group: TagGroup }[];
 });
 
 const updateSelectedFromProps = () => {
@@ -36,7 +40,7 @@ const updateSelectedFromProps = () => {
     if (!tagsStore.all_tags.some(tg => tg.tags.some(t => t.id === tagId))) continue;
     selectedTags.value[tagId] = {checked: true, partialChecked: false};
   }
-  selectedTags.value = {...selectedTags.value};
+  selectedTags.value = selectedTags.value;
 }
 
 // Watch for changes in props.pictureTags

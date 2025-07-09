@@ -112,7 +112,7 @@ const updatePictureTags = async (tagsToAdd: number[], tagsToRemove: number[]) =>
   }
 }
 
-watch(picturesStore, () => fetchPictureDetails())
+watch(picturesStore, () => fetchPictureDetails(), {immediate: true});
 watch(tagsStore, async () => {
   await tagsStore.tags_loaded_promise;
   // When editing tags, a picture can gain a new tag as default or loose a deleted tag, then re-fetch details

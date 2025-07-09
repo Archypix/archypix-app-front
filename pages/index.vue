@@ -1,5 +1,23 @@
 <script setup lang="ts">
 
+import SidePanels from "~/components/app/layout/SidePanels.vue";
+import {ref} from "vue";
+
+let leftPanelEnabled = ref(true);
+let rightPanelEnabled = ref(true);
+
+let picturesStore = usePicturesStore();
+
+let leftPanelVisible = computed({
+  get: () => leftPanelEnabled.value,
+  set: value => leftPanelEnabled.value = value,
+});
+let rightPanelVisible = computed({
+  get: () => rightPanelEnabled.value && picturesStore.selected_pictures.length > 0,
+  set: value => rightPanelEnabled.value = value,
+});
+
+
 definePageMeta({
   layout: 'app'
 })
@@ -8,22 +26,34 @@ definePageMeta({
 
 <template>
   <main class="w-screen h-screen flex flex-col items-stretch">
-    <TopBar/>
-    <Splitter class="flex-grow border-none rounded-none" layout="horizontal">
-      <SplitterPanel>
-        <Splitter class="flex-grow border-none rounded-none" layout="horizontal">
-          <SplitterPanel :size="10" :maxSize="50">
-            <LeftSidebar/>
-          </SplitterPanel>
-          <SplitterPanel class="flex flex-col">
-            <MainPane/>
-          </SplitterPanel>
-        </Splitter>
-      </SplitterPanel>
-      <SplitterPanel :size="10" :maxSize="50">
+    <TopBar
+        v-model:left-panel-enabled="leftPanelEnabled"
+        v-model:right-panel-enabled="rightPanelEnabled"
+    />
+
+    <SidePanels
+        v-model:left-panel-visible="leftPanelVisible"
+        v-model:right-panel-visible="rightPanelVisible"
+        :left-panel-width="250"
+        :left-panel-min-width="200"
+        :left-panel-drawer-width="260"
+        :right-panel-drawer-width="350"
+        :left-panel-max-width="400"
+        :right-panel-width="300"
+        :right-panel-min-width="200"
+        :right-panel-max-width="400"
+    >
+      <template #left>
+        <LeftSidebar/>
+      </template>
+      <template #main>
+        <MainPane/>
+      </template>
+      <template #right>
         <RightSidebar/>
-      </SplitterPanel>
-    </Splitter>
+      </template>
+    </SidePanels>
+
   </main>
 </template>
 

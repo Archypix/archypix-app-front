@@ -10,37 +10,25 @@ interface Coordinates {
 
 const props = defineProps({
   modelValue: {
-    type: [String, Object, null, undefined],
+    type: Object as () => Coordinates | null | undefined,
     default: null,
-    validator: (value: any) => {
-      if (value === null || value === undefined || value === '') return true;
-
-      if (typeof value === 'string') {
-        const parts = value.split(',').map(Number);
-        return parts.length >= 2 && parts.every(coord => !isNaN(coord));
-      }
-
-      // It's a coordinates object
-      const hasLat = 'latitude' in value && (value.latitude === null || !isNaN(Number(value.latitude)));
-      const hasLng = 'longitude' in value && (value.longitude === null || !isNaN(Number(value.longitude)));
-      const hasAlt = !('altitude' in value) || value.altitude === null || !isNaN(Number(value.altitude));
-
-      return hasLat && hasLng && hasAlt;
-    }
+  },
+  title: {
+    type: String,
   },
   placeholder: {
     type: String,
-    default: 'Enter coordinates (lat, lng)'
+    default: 'Lat, Long'
+  },
+  showAltitude: {
+    type: Boolean,
+    default: false
   },
   nullable: {
     type: Boolean,
     default: true
   },
   disabled: {
-    type: Boolean,
-    default: false
-  },
-  showAltitude: {
     type: Boolean,
     default: false
   },
@@ -57,228 +45,165 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'save']);
 
-const coordinates = ref<Coordinates>({
-  latitude: null,
-  longitude: null,
-  altitude: null
+const latitude = ref(props.modelValue?.latitude ?? null);
+const longitude = ref(props.modelValue?.longitude ?? null);
+const altitude = ref(props.modelValue?.altitude ?? null);
+
+watch(() => props.modelValue, (val) => {
+  latitude.value = val?.latitude ?? null;
+  longitude.value = val?.longitude ?? null;
+  altitude.value = val?.altitude ?? null;
 });
 
-const showMap = ref(false);
+const save = () => {
+  const newValue: Coordinates = {
+    latitude: latitude.value,
+    longitude: longitude.value,
+  };
+  if (props.showAltitude) {
+    newValue.altitude = altitude.value;
+  }
 
-function parseCoordinates(value: string | Coordinates | null | undefined): Coordinates | null {
-  if (!value) return null;
+  if (newValue.latitude !== props.modelValue?.latitude ||
+      newValue.longitude !== props.modelValue?.longitude ||
+      (props.showAltitude && newValue.altitude !== props.modelValue?.altitude)) {
+    emit('update:modelValue', newValue);
+    emit('save');
+  }
+};
 
-  if (typeof value === 'string') {
-    const parts = value.split(',').map(Number);
-    if (parts.length >= 2 && !parts.some(isNaN)) {
-      return {
-        latitude: parts[0],
-        longitude: parts[1],
-        altitude: parts[2] || null
-      };
-    }
+const cancel = () => {
+  latitude.value = props.modelValue?.latitude ?? null;
+  longitude.value = props.modelValue?.longitude ?? null;
+  altitude.value = props.modelValue?.altitude ?? null;
+};
+
+const displayValue = computed(() => {
+  if (!props.modelValue || props.modelValue.latitude === null || props.modelValue.longitude === null) {
     return null;
   }
-
-  // It's already a coordinates object
-  return {
-    latitude: value.latitude !== undefined ? Number(value.latitude) : null,
-    longitude: value.longitude !== undefined ? Number(value.longitude) : null,
-    altitude: value.altitude !== undefined ? Number(value.altitude) : null
-  };
-}
-
-function formatCoordinates(coords: Coordinates | null): string {
-  if (!coords || coords.latitude === null || coords.longitude === null) return '';
-
-  let formatted = `${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}`;
-  if (props.showAltitude && coords.altitude !== null) {
-    formatted += `, ${coords.altitude.toFixed(2)}m`;
+  let formatted = `${props.modelValue.latitude.toFixed(4)}, ${props.modelValue.longitude.toFixed(4)}`;
+  if (props.showAltitude && props.modelValue.altitude !== null && props.modelValue.altitude !== undefined) {
+    formatted += `, ${props.modelValue.altitude.toFixed(1)}m`;
   }
-
   return formatted;
-}
+});
 
-function validateCoordinates(coords: Coordinates): boolean {
-  if (coords.latitude === null || coords.longitude === null) return true;
-
-  if (coords.latitude < -90 || coords.latitude > 90) return false;
-  if (coords.longitude < -180 || coords.longitude > 180) return false;
-
-  return true;
-}
-
-function handleSave() {
-  if (!coordinates.value || coordinates.value.latitude === null || coordinates.value.longitude === null) {
-    emit('update:modelValue', null);
-    emit('save', null);
-    return;
-  }
-
-  if (validateCoordinates(coordinates.value)) {
-    const value = `${coordinates.value.latitude},${coordinates.value.longitude}` +
-                 (props.showAltitude && coordinates.value.altitude !== null ? `,${coordinates.value.altitude}` : '');
-    emit('update:modelValue', value);
-    emit('save', value);
-  }
-}
-
-function openMap() {
-  showMap.value = true;
-  // In a real implementation, you would open a map component here
-  // and update the coordinates when a location is selected
-}
-
-function handleMapSelect(lat: number, lng: number) {
-  coordinates.value.latitude = lat;
-  coordinates.value.longitude = lng;
-  handleSave();
-  showMap.value = false;
-}
-
-// Watch for external changes to modelValue
-watch(() => props.modelValue, (newVal) => {
-  if (newVal === null || newVal === undefined || newVal === '') {
-    coordinates.value = { latitude: null, longitude: null, altitude: null };
-  } else {
-    const parsed = parseCoordinates(newVal);
-    if (parsed) {
-      coordinates.value = parsed;
-    }
-  }
-}, { immediate: true });
 </script>
 
 <template>
-  <div class="location-field">
-    <BaseEditableProp
-      v-bind="$props"
-      :model-value="modelValue"
-      :format="formatCoordinates"
-      :validate="() => true"
-      @update:model-value="(val) => emit('update:modelValue', val)"
-      @save="handleSave"
-    >
-      <template #input="{ inputValue, save, cancel }">
-        <div class="flex flex-col gap-2 w-full">
-          <div class="flex items-center gap-2">
-            <div class="flex-1">
-              <label class="block text-xs text-gray-500 mb-1">Latitude</label>
-              <InputNumber
-                v-model="coordinates.latitude"
-                class="w-full"
-                :min="-90"
-                :max="90"
-                :step="0.000001"
-                :minFractionDigits="6"
-                :maxFractionDigits="6"
-                placeholder="Latitude"
-                @keydown.enter="handleSave"
-                @keydown.esc="cancel"
-              />
-            </div>
+  <BaseEditableProp
+    :value="displayValue"
+    :title="title"
+    @save="save"
+    @cancel="cancel"
+  >
+    <template #input="{ save, cancel }">
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <InputNumber
+            v-model="latitude"
+            class="w-32 py-0.5 px-2 text-sm"
+            placeholder="Latitude"
+            :min="-90"
+            :max="90"
+            :minFractionDigits="2"
+            :maxFractionDigits="6"
+            @keydown.enter="save"
+            @keydown.esc="cancel"
+            @blur="save"
+          />
+          <InputNumber
+            v-model="longitude"
+            class="w-32 py-0.5 px-2 text-sm"
+            placeholder="Longitude"
+            :min="-180"
+            :max="180"
+            :minFractionDigits="2"
+            :maxFractionDigits="6"
+            @keydown.enter="save"
+            @keydown.esc="cancel"
+            @blur="save"
+          />
+          <Button
+            v-if="showMapButton"
+            icon="pi pi-map"
+            class="self-end mb-1"
+            text
+            @click="openMap"
+            v-tooltip="'Open map'"
+          />
+        </div>
+        <InputNumber
+          v-if="showAltitude"
+          v-model="altitude"
+          class="w-full py-0.5 px-2 text-sm"
+          placeholder="Altitude (m)"
+          :minFractionDigits="1"
+          :maxFractionDigits="2"
+          @keydown.enter="save"
+          @keydown.esc="cancel"
+          @blur="save"
+        />
+        <div class="flex justify-between items-center mt-2">
+          <div v-if="latitude !== null && longitude !== null" class="text-xs">
+            <a
+              :href="`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`"
+              target="_blank"
+              class="text-primary-600 hover:underline"
+              @click.stop
+            >
+              View on OpenStreetMap
+            </a>
+          </div>
 
-            <div class="flex-1">
-              <label class="block text-xs text-gray-500 mb-1">Longitude</label>
-              <InputNumber
-                v-model="coordinates.longitude"
-                class="w-full"
-                :min="-180"
-                :max="180"
-                :step="0.000001"
-                :minFractionDigits="6"
-                :maxFractionDigits="6"
-                placeholder="Longitude"
-                @keydown.enter="handleSave"
-                @keydown.esc="cancel"
-              />
-            </div>
-
+          <div class="flex gap-1 ml-auto">
             <Button
-              v-if="showMapButton"
-              icon="pi pi-map"
-              class="self-end mb-1"
+              icon="pi pi-check"
+              size="small"
               text
-              @click="openMap"
-              v-tooltip="'Open map'"
+              severity="success"
+              @click="save"
             />
-          </div>
-
-          <div v-if="showAltitude" class="mt-1">
-            <label class="block text-xs text-gray-500 mb-1">Altitude (meters)</label>
-            <InputNumber
-              v-model="coordinates.altitude"
-              class="w-full"
-              :step="0.01"
-              :minFractionDigits="2"
-              :maxFractionDigits="2"
-              placeholder="Altitude"
-              @keydown.enter="handleSave"
-              @keydown.esc="cancel"
+            <Button
+              v-if="nullable"
+              icon="pi pi-times"
+              size="small"
+              text
+              severity="danger"
+              @click="emit('update:modelValue', null); emit('save');"
             />
-          </div>
-
-          <div class="flex justify-between items-center mt-2">
-            <div v-if="coordinates.latitude !== null && coordinates.longitude !== null" class="text-xs">
-              <a
-                :href="`https://www.openstreetmap.org/?mlat=${coordinates.latitude}&mlon=${coordinates.longitude}#map=15/${coordinates.latitude}/${coordinates.longitude}`"
-                target="_blank"
-                class="text-primary-600 hover:underline"
-                @click.stop
-              >
-                View on OpenStreetMap
-              </a>
-            </div>
-
-            <div class="flex gap-1 ml-auto">
-              <Button
-                icon="pi pi-check"
-                size="small"
-                text
-                severity="success"
-                @click="handleSave"
-              />
-              <Button
-                v-if="nullable"
-                icon="pi pi-times"
-                size="small"
-                text
-                severity="danger"
-                @click="emit('update:modelValue', null); emit('save', null);"
-              />
-            </div>
           </div>
         </div>
-      </template>
-    </BaseEditableProp>
-
-    <!-- Map Modal -->
-    <Dialog
-      v-model:visible="showMap"
-      modal
-      header="Select Location on Map"
-      :style="{ width: '90vw', maxWidth: '800px' }"
-    >
-      <div class="map-container" style="height: 60vh; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
-        <p class="text-gray-500">Map integration would go here</p>
-        <!-- In a real implementation, you would integrate with a map library like Leaflet or Google Maps -->
       </div>
-      <template #footer>
-        <div class="flex justify-content-end gap-2">
-          <Button label="Cancel" icon="pi pi-times" text @click="showMap = false" />
-          <Button label="Use Current Location" icon="pi pi-crosshairs" @click="handleMapSelect(0, 0)" />
-          <Button label="Save Location" icon="pi pi-check" @click="handleSave" />
-        </div>
-      </template>
-    </Dialog>
-  </div>
+    </template>
+  </BaseEditableProp>
+
+  <!-- Map Modal -->
+  <Dialog
+    v-model:visible="showMap"
+    modal
+    header="Select Location on Map"
+    :style="{ width: '90vw', maxWidth: '800px' }"
+  >
+    <div class="map-container" style="height: 60vh; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+      <p class="text-gray-500">Map integration would go here</p>
+      <!-- In a real implementation, you would integrate with a map library like Leaflet or Google Maps -->
+    </div>
+    <template #footer>
+      <div class="flex justify-content-end gap-2">
+        <Button label="Cancel" icon="pi pi-times" text @click="showMap = false" />
+        <Button label="Use Current Location" icon="pi pi-crosshairs" @click="handleMapSelect(0, 0)" />
+        <Button label="Save Location" icon="pi pi-check" @click="save" />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <style scoped>
 :deep(.p-inputtext) {
   text-align: left;
 }
-
 .map-container {
   border-radius: 4px;
   overflow: hidden;

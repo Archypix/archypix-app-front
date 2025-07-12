@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import BaseEditableProp from './BaseEditableProp.vue';
-import InputText from 'primevue/inputtext';
+
+import Button from "primevue/button";
 
 const props = defineProps({
   modelValue: {
@@ -27,11 +27,7 @@ const props = defineProps({
     default: 0
   },
   maxLength: {
-    type: Number,
-    default: null
-  },
-  pattern: {
-    type: String,
+    type: [Number, null],
     default: null
   }
 });
@@ -46,40 +42,37 @@ watch(() => props.modelValue, (val) => {
 
 const save = () => {
   if (value.value != props.modelValue) {
+    if (props.maxLength !== null && value.value.length > props.maxLength) {
+      value.value = value.value.substring(0, props.maxLength);
+    }else if (props.minLength > 0 && value.value.length < props.minLength) {
+      value.value = null;
+    }
     emit('update:modelValue', value.value);
     emit('save');
   }
 };
-
-function validate(value: string) {
-  if (value.length < props.minLength) return false;
-  if (props.maxLength !== null && value.length > props.maxLength) return false;
-  if (props.pattern && !new RegExp(props.pattern).test(value)) return false;
-  return true;
-}
 
 
 </script>
 
 <template>
   <BaseEditableProp
-    :value="value"
-    :title="title"
-    @save="save"
-    @cancel="value = props.modelValue"
+      :value="value"
+      :title="title"
+      @save="save"
+      @cancel="value = props.modelValue"
   >
     <template #input="{ save, cancel }">
       <InputGroup class="rounded-xs">
         <InputText
-          v-model="value"
-          class="flex-1 py-0.5 px-2 text-sm"
-          :placeholder="placeholder"
-          @keydown.enter="save"
-          @keydown.esc="cancel"
-          @blur="save"
+            v-model="value"
+            class="flex-1 py-0.5 px-2 text-sm"
+            :placeholder="placeholder"
+            @keydown.enter="save"
+            @keydown.esc="cancel"
         />
-        <InputGroupAddon class="flex-0">
-          <Button @click="save" icon="pi pi-check" class="px-0 py-0" severity="secondary"/>
+        <InputGroupAddon class="flex-0 min-w-8">
+          <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
         </InputGroupAddon>
       </InputGroup>
     </template>

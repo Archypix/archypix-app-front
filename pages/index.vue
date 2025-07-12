@@ -1,10 +1,8 @@
 <script setup lang="ts">
+import { useStorage } from '@vueuse/core'
 
-import SidePanels from "~/components/app/layout/SidePanels.vue";
-import {ref} from "vue";
-
-let leftPanelEnabled = ref(true);
-let rightPanelEnabled = ref(true);
+let leftPanelEnabled = useStorage('px_left_panel_enabled', true);
+let rightPanelEnabled = useStorage('px_right_panel_enabled', true);
 
 let picturesStore = usePicturesStore();
 

@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import {computed, ref, watch} from 'vue';
+import { useFocusWithin } from '@vueuse/core';
 import BaseEditableProp from './BaseEditableProp.vue';
 import InputNumber from 'primevue/inputnumber';
+import Button from "primevue/button";
 
 const props = defineProps({
   numerator: {
-    type: [Number, null, undefined],
-    default: null,
+    type: [Number, null],
+    default: null
   },
   denominator: {
-    type: [Number, null, undefined],
-    default: null,
+    type: [Number, null],
+    default: null
   },
-  placeholder: {
+  title: {
     type: String,
-    default: 'Enter fraction (e.g., 1/100)'
   },
   nullable: {
     type: Boolean,
@@ -26,7 +27,7 @@ const props = defineProps({
   },
   minNumerator: {
     type: Number,
-    default: -Infinity
+    default: 1
   },
   maxNumerator: {
     type: Number,
@@ -34,130 +35,143 @@ const props = defineProps({
   },
   minDenominator: {
     type: Number,
-    default: 1 // Denominator can't be zero
+    default: 1
   },
   maxDenominator: {
     type: Number,
     default: Infinity
   },
-  allowDecimal: {
-    type: Boolean,
-    default: false
+  prefix: {
+    type: String,
+    default: ''
   },
-  decimalPlaces: {
-    type: Number,
-    default: 2,
-    validator: (value: number) => value >= 0 && value <= 8
+  suffix: {
+    type: String,
+    default: ''
   }
 });
 
-const emit = defineEmits([
-  'update:numerator',
-  'update:denominator',
-]);
+const emit = defineEmits<{
+  (e: 'update:numerator', value: number | null): void;
+  (e: 'update:denominator', value: number | null): void;
+  (e: 'save'): void;
+}>();
+
 
 const numerator = ref(props.numerator);
 const denominator = ref(props.denominator);
 
-// Watch for external changes to numerator and denominator
-watch(() => [props.numerator, props.denominator], ([num, den]) => {
-  if (num === null || den === null) {
-    numerator.value = null;
-    denominator.value = null;
-  } else {
-    numerator.value = num;
-    denominator.value = den;
-  }
-}, { immediate: true });
+
+watch(() => props.numerator, (val) => {
+  numerator.value = val;
+});
+watch(() => props.denominator, (val) => {
+  denominator.value = val;
+});
 
 const save = () => {
-  emit('update:numerator', numerator.value);
-  emit('update:denominator', denominator.value);
+  if (numerator.value !== props.numerator || denominator.value !== props.denominator) {
+    if (props.numerator === null || props.denominator === null) {
+      emit('update:numerator', null);
+      emit('update:denominator', null);
+    }else {
+      emit('update:numerator', numerator.value);
+      emit('update:denominator', denominator.value);
+    }
+    emit('save');
+  }
 };
+
+const cancel = () => {
+  numerator.value = props.numerator;
+  denominator.value = props.denominator;
+};
+
+const displayValue = computed(() => {
+  if (props.numerator === null || props.denominator === null) {
+    return null;
+  }
+  return `${props.numerator} / ${props.denominator}`;
+});
+
+const fraction = computed(() => {
+  return {
+    numerator: numerator.value,
+    denominator: denominator.value
+  }
+});
 
 </script>
 
 <template>
   <BaseEditableProp
-    v-bind="$props"
-    :model-value="formatFraction({ numerator: numerator, denominator: denominator })"
-    :format="formatDisplay"
-    :validate="() => true"
-    @update:model-value="(val) => {
-      const parsed = parseFraction(val);
-      if (parsed) {
-        numerator = parsed.numerator;
-        denominator = parsed.denominator;
-      }
-    }"
-    @save="handleSave"
+      :value="displayValue"
+      :prefix="prefix"
+      :suffix="suffix"
+      :title="title"
+      @save="save"
+      @cancel="cancel"
   >
-    <template #input="{ inputValue, save, cancel }">
-      <div class="flex items-center gap-2 w-full">
-        <div class="flex items-center gap-1">
-          <InputNumber
+    <template #input="{ save, cancel }">
+
+      <InputGroup class="rounded-xs">
+        <InputNumber
             v-model="numerator"
-            class="w-20 text-center"
+            size="small"
+            :pt="{
+              pcInputText: { root: {class: 'py-0.5 px-2 text-sm w-5'}},
+            }"
             :min="minNumerator"
             :max="maxNumerator"
-            :step="1"
-            :minFractionDigits="0"
-            :maxFractionDigits="4"
-            :placeholder="'Numerator'"
-            @keydown.enter="handleSave"
+            placeholder="num"
+            @keydown.enter="save"
             @keydown.esc="cancel"
-          />
-          <span class="text-lg">⁄</span>
-          <InputNumber
+        />
+        <InputGroupAddon class="px-0 py-0 min-w-5 w-5">
+          <p>⁄</p>
+        </InputGroupAddon>
+        <InputNumber
             v-model="denominator"
-            class="w-20 text-center"
+            size="small"
+            :pt="{
+              pcInputText: { root: {class: 'py-0.5 px-2 text-sm'}},
+            }"
             :min="minDenominator"
             :max="maxDenominator"
-            :step="1"
-            :minFractionDigits="0"
-            :maxFractionDigits="0"
-            :placeholder="'Denom'"
-            @keydown.enter="handleSave"
+            placeholder="den"
+            @keydown.enter="save"
             @keydown.esc="cancel"
-          />
-        </div>
+        />
+        <InputGroupAddon class="flex-0 min-w-8">
+          <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
+        </InputGroupAddon>
 
-        <div v-if="allowDecimal" class="text-gray-500 ml-2">
-          ≈ {{ fraction.numerator && fraction.denominator ? (fraction.numerator / fraction.denominator).toFixed(decimalPlaces) : '0' }}
-        </div>
+        <!--        <<>div v-if="allowDecimal" class="text-gray-500 ml-2">-->
+        <!--          ≈ {{ fraction.numerator && fraction.denominator ? (fraction.numerator / fraction.denominator).toFixed(decimalPlaces) : '0' }}-->
+        <!--        </div></>-->
 
-        <div class="flex gap-1 ml-auto">
-          <Button
-            icon="pi pi-check"
-            size="small"
-            text
-            severity="success"
-            @click="handleSave"
-          />
-          <Button
-            v-if="nullable"
-            icon="pi pi-times"
-            size="small"
-            text
-            severity="danger"
-            @click="emit('update:modelValue', null); emit('save', null);"
-          />
-        </div>
-      </div>
+        <!--        <div class="flex gap-1 ml-auto">-->
+        <!--          <Button-->
+        <!--            icon="pi pi-check"-->
+        <!--            size="small"-->
+        <!--            text-->
+        <!--            severity="success"-->
+        <!--            @click="save"-->
+        <!--          />-->
+        <!--          <Button-->
+        <!--            v-if="nullable"-->
+        <!--            icon="pi pi-times"-->
+        <!--            size="small"-->
+        <!--            text-->
+        <!--            severity="danger"-->
+        <!--            @click="emit('update:modelValue', null); emit('save', null);"-->
+        <!--          />-->
+        <!--        </div>-->
+      </InputGroup>
     </template>
   </BaseEditableProp>
 </template>
 
 <style scoped>
-/* Custom styling for the fraction display */
-:deep(.p-inputtext) {
-  text-align: center;
-  padding: 0.25rem 0.5rem;
-}
 
-:deep(.fraction-slash) {
-  font-size: 1.5rem;
-  line-height: 1;
-  vertical-align: middle;
-}
 </style>

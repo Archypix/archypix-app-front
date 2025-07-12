@@ -120,6 +120,19 @@ watch(tagsStore, async () => {
 }, {immediate: false});
 
 
+const focal_length = computed({
+  get: () => parseFloat(picture.value?.focal_length) || null,
+  set: (value: number | null) => {
+    picture.value.focal_length = value?.toFixed(2) || null;
+  }
+})
+const f_number = computed({
+  get: () => parseFloat(picture.value?.f_number) || null,
+  set: (value: number | null) => {
+    picture.value.f_number = value?.toFixed(1) || null;
+  }
+})
+
 </script>
 
 <template>
@@ -180,66 +193,44 @@ watch(tagsStore, async () => {
         </ul>
       </div>
       <div class="mt-2">
-        <div class="font-medium mb-0.5">Exif :</div>
+        <div class="font-medium mb-0.5">Data</div>
         <ul class="attributes-list list-none p-0 m-0">
-          <li class="flex gap-2 text-sm  mb-0.5"><span class="min-w-[120px] text-gray-400">Creation Date</span>
-            <span>{{ formatDate(picture.creation_date) }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Edition Date</span>
-            <span>{{ formatDate(picture.edition_date) }}</span></li>
+          <BaseEditableProp
+              title="Resolution"
+              :value="picture.width + ' × ' + picture.height"
+              :readonly="true"/>
+          <BaseEditableProp
+              title="Orientation"
+              :value="picture.orientation"
+              :readonly="true"/>
+        </ul>
+      </div>
+      <div class="mt-2">
+        <div class="font-medium mb-0.5">Editable exif data</div>
+        <ul class="attributes-list list-none p-0 m-0">
+            <DateEditableProp
+                :title="'Creation Date'"
+                v-model="picture.creation_date"
+                :nullable="false"
+            />
+            <DateEditableProp
+                :title="'Edition Date'"
+                v-model="picture.edition_date"
+                :nullable="false"
+            />
+<!--            <LocationEditableProp-->
+<!--                :title="'Location'"-->
+<!--                v-model:latitude="latitude"-->
+<!--                v-model:longitude="longitude"-->
+<!--                @save="savePicture"-->
+<!--                :show-altitude="false"-->
+<!--            />-->
+
           <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Latitude, Longitude</span>
             <span>{{ formatLatLng(picture.latitude, picture.longitude) }}</span></li>
           <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Altitude</span>
             <span>{{ picture.altitude !== null ? picture.altitude : '-' }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Orientation</span>
-            <span>{{ picture.orientation }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Resolution</span> <span>{{ picture.width }} × {{
-              picture.height
-            }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Camera Brand</span>
-            <span>{{ picture.camera_brand || '-' }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Camera Model</span>
-            <span>{{ picture.camera_model || '-' }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Focal Length</span>
-            <span>{{ picture.focal_length || '-' }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Exposure Time</span> <span>{{
-              picture.exposure_time_num && picture.exposure_time_den ? `${picture.exposure_time_num}/${picture.exposure_time_den}s` : '-'
-            }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">ISO</span>
-            <span>{{ picture.iso_speed !== null ? picture.iso_speed : '-' }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Aperture</span>
-            <span>{{ picture.f_number || '-' }}</span></li>
-        </ul>
-      </div>
-      <div class="mt-2">
-        <div class="font-medium mb-0.5">Exif :</div>
-        <ul class="attributes-list list-none p-0 m-0">
-          <!--          <li>-->
-          <!--            <span>Creation Date</span>-->
-          <!--            <DateEditableProp-->
-          <!--                v-model="picture.creation_date"-->
-          <!--                :show-time="true"-->
-          <!--                :nullable="false"-->
-          <!--                class="flex-1"-->
-          <!--            />-->
-          <!--          </li>-->
-          <!--          <li>-->
-          <!--            <span>Edition Date</span>-->
-          <!--            <DateEditableProp-->
-          <!--                v-model="picture.edition_date"-->
-          <!--                :show-time="true"-->
-          <!--                class="flex-1"-->
-          <!--            />-->
-          <!--          </li>-->
-          <!--          <li>-->
-          <!--            <span>Location</span>-->
-          <!--            <LocationEditableProp-->
-          <!--                v-model:latitude="latitude"-->
-          <!--                v-model:longitude="longitude"-->
-          <!--                @save="savePicture"-->
-          <!--                :show-altitude="false"-->
-          <!--                class="flex-1"-->
-          <!--            />-->
-          <!--          </li>-->
+
           <NumberEditableProp
               title="Altitude"
               v-model="picture.altitude"
@@ -247,59 +238,31 @@ watch(tagsStore, async () => {
               :suffix="' m'"
               :min="-1000"
               :max="10000"
-              :decimal="2"
-              class="flex-1"
           />
-          <!--          <li>-->
-          <!--            <span>Orientation</span>-->
-          <!--            <NumberEditableProp-->
-          <!--                v-model="picture.orientation"-->
-          <!--                @save="savePicture"-->
-          <!--                :min="1"-->
-          <!--                :max="8"-->
-          <!--                :step="1"-->
-          <!--                :nullable="false"-->
-          <!--                class="flex-1"-->
-          <!--            />-->
-          <!--          </li>-->
-          <li><span>Resolution</span> <span>{{ picture.width }} × {{
-              picture.height
-            }}</span></li>
           <TextEditableProp
               title="Camera Brand"
               v-model="picture.camera_brand"
               @save="savePicture"
-              :nullable="false"
-              class="flex-1"
+              :min-length="1"
+              :max-length="32"
           />
           <TextEditableProp
               title="Camera Model"
               v-model="picture.camera_model"
               @save="savePicture"
-              class="flex-1"
+              :min-length="1"
+              :max-length="32"
           />
-          <NumberEditableProp
-              title="Focal Length"
-              v-model="picture.focal_length"
+          <FractionEditableProp
+              title="Exposure Time"
+              v-model:numerator="picture.exposure_time_num"
+              v-model:denominator="picture.exposure_time_den"
+              :min-numerator="1"
+              :max-numerator="100000"
+              :min-denominator="1"
+              :max-denominator="100000"
               @save="savePicture"
-              :suffix="' mm'"
-              :min="1"
-              :max="2000"
-              :step="1"
-              :decimal="1"
-              class="flex-1"
           />
-          <!--          <li>-->
-          <!--            <span>Exposure Time</span>-->
-          <!--            <FractionEditableProp-->
-          <!--                v-model:numerator="exposure_time_num"-->
-          <!--                v-model:denominator="exposure_time_den"-->
-          <!--                :allow-decimal="true"-->
-          <!--                :decimal-places="6"-->
-          <!--                :suffix="'s'"-->
-          <!--                class="flex-1"-->
-          <!--            />-->
-          <!--          </li>-->
           <NumberEditableProp
               title="ISO"
               v-model="picture.iso_speed"
@@ -307,18 +270,28 @@ watch(tagsStore, async () => {
               :min="50"
               :max="25600"
               :step="50"
-              class="flex-1"
+          />
+          <NumberEditableProp
+              title="Focal Length"
+              v-model="focal_length"
+              @save="savePicture"
+              :suffix="' mm'"
+              :min="1"
+              :max="10000"
+              :step="1"
+              :min-fraction-digits="0"
+              :max-fraction-digits="2"
           />
           <NumberEditableProp
               title="Aperture"
-              v-model="picture.f_number"
+              v-model="f_number"
               @save="savePicture"
+              :min-fraction-digits="1"
+              :max-fraction-digits="2"
               :min="1"
               :max="64"
               :step="0.1"
-              :decimal="1"
               :prefix="'f/'"
-              class="flex-1"
           />
         </ul>
       </div>

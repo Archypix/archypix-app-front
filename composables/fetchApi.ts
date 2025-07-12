@@ -46,7 +46,7 @@ export type HttpError = {
 }
 
 const genericFetchApi = async function <B, R>(ssr: boolean, method: string, auth_token: string | null | undefined,
-                                       id: string | null | undefined, path: string, body: B, useUseFetch: boolean): Promise<R> {
+                                              id: string | null | undefined, path: string, body: B, useUseFetch: boolean): Promise<R> {
 
     return new Promise<R>(async (resolve: (data: R) => void, reject: (error: ApiError | null) => void) => {
         const backend_host = import.meta.server ? useRuntimeConfig()?.public?.backendHostSSR : useRuntimeConfig()?.public?.backendHost;
@@ -68,7 +68,7 @@ const genericFetchApi = async function <B, R>(ssr: boolean, method: string, auth
             })
             data = result.data?.value;
             error = result.error?.value ?? null;
-        }else {
+        } else {
             console.log('fetchApi', 'method:', method, 'uid:', id, 'path:', path, 'body:', body)
             try {
                 data = await $fetch<R, HttpError>(backend_host + path, {
@@ -82,7 +82,7 @@ const genericFetchApi = async function <B, R>(ssr: boolean, method: string, auth
                     server: ssr,
                     body: body,
                 })
-            }catch (e) {
+            } catch (e) {
                 error = e?.value;
             }
         }
@@ -156,6 +156,6 @@ export const deleteApi = async function <B, R>(path: string, body: B) {
     return await fetchApi<B, R>('DELETE', user.auth_token, user.id, path, body)
 }
 export const fetchApi = async function <B, R>(method: string, auth_token: string | null | undefined,
-                                                 id: string | null | undefined, path: string, body: B): Promise<R> {
+                                              id: string | null | undefined, path: string, body: B): Promise<R> {
     return genericFetchApi(false, method, auth_token, id, path, body, false);
 }

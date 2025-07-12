@@ -1,31 +1,25 @@
 <script setup lang="ts">
 import BaseEditableProp from './BaseEditableProp.vue';
 import Calendar from 'primevue/calendar';
+import InputGroup from 'primevue/inputgroup';
+import InputGroupAddon from 'primevue/inputgroupaddon';
+import Button from 'primevue/button';
 
 const props = defineProps({
   modelValue: {
     type: [String, null, undefined],
     default: null,
-    validator: (value: any) => {
-      if (value === null || value === undefined || value === '') return true;
-      return !isNaN(Date.parse(value));
-    }
+  },
+  title: {
+    type: String,
   },
   placeholder: {
     type: String,
     default: 'Select a date'
   },
-  nullable: {
-    type: Boolean,
-    default: true
-  },
-  disabled: {
-    type: Boolean,
-    default: false
-  },
   showTime: {
     type: Boolean,
-    default: false
+    default: true
   },
   timeOnly: {
     type: Boolean,
@@ -33,19 +27,11 @@ const props = defineProps({
   },
   showSeconds: {
     type: Boolean,
-    default: false
-  },
-  showMillisec: {
-    type: Boolean,
-    default: false
+    default: true
   },
   dateFormat: {
     type: String,
     default: 'yy-mm-dd'
-  },
-  timeFormat: {
-    type: String,
-    default: 'HH:MM:ss'
   },
   minDate: {
     type: String,
@@ -59,63 +45,79 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'save']);
 
-const value = ref(props.modelValue);
+const value = ref(props.modelValue ? new Date(props.modelValue) : null);
 
-function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) return '';
+watch(() => props.modelValue, (val) => {
+  value.value = val ? new Date(val) : null;
+});
 
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return 'Invalid date';
+function formatDateToLocalISO(date) {
+  const pad = (num) => num.toString().padStart(2, '0');
 
-  if (props.showTime || props.timeOnly) {
-    return date.toLocaleString();
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
+const save = () => {
+  const newValue = value.value ? formatDateToLocalISO(value.value) : null;
+  if (newValue !== props.modelValue && newValue !== null) {
+    emit('update:modelValue', newValue);
+    emit('save');
   }
-  return date.toLocaleDateString();
-}
+};
 
-function parseDate(date: Date | null): string | null {
-  if (!date) return null;
-  return date.toISOString();
-}
+const cancel = () => {
+  value.value = props.modelValue ? new Date(props.modelValue) : null;
+};
 
-function validate(value: string): boolean {
-  if (value === '') return true;
-  const date = new Date(value);
-  if (isNaN(date.getTime())) return false;
+const displayValue = computed(() => {
+  if (props.modelValue === null) return '∅';
+  if (props.modelValue === undefined) return 'mixed';
+  const date = new Date(props.modelValue);
+  return props.showTime ? date.toLocaleString() : date.toLocaleDateString();
+});
 
-  if (props.minDate && new Date(value) < new Date(props.minDate)) return false;
-  if (props.maxDate && new Date(value) > new Date(props.maxDate)) return false;
+const autoBlur = ref(true);
 
-  return true;
-}
 </script>
 
 <template>
   <BaseEditableProp
-    :value="value"
-    @save="emit('save', value)"
+    :value="displayValue"
+    :title="title"
+    :auto-blur="autoBlur"
+    @save="save"
+    @cancel="cancel"
   >
-    <template #input="{ save, cancel }">
-      <div class="w-full">
-        <Calendar
+    <template #input="{ save, cancel}">
+      <InputGroup class="rounded-xs">
+        <DatePicker
           v-model="value"
-          class="w-full"
           :show-time="showTime"
           :time-only="timeOnly"
           :show-seconds="showSeconds"
-          :show-millisec="showMillisec"
           :date-format="dateFormat"
-          :time-format="timeFormat"
           :min-date="minDate ? new Date(minDate) : null"
           :max-date="maxDate ? new Date(maxDate) : null"
           :placeholder="placeholder"
-          :show-icon="true"
-          @date-select="save"
           @keydown.enter="save"
           @keydown.esc="cancel"
-          @blur="save"
+          :pt="{
+            pcInputText: { root: {class: 'py-0.5 px-2 text-sm'} },
+          }"
+          @show="autoBlur = false"
+          @hide="autoBlur = true"
         />
-      </div>
+        <InputGroupAddon class="flex-0 min-w-8">
+          <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
+        </InputGroupAddon>
+      </InputGroup>
     </template>
   </BaseEditableProp>
 </template>

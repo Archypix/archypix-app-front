@@ -76,7 +76,7 @@ onMounted(() => {
         const formData = new FormData()
         formData.append('file', file);
 
-        usePostApi<FormData, PictureUploadResponse>(true, '/picture', formData)
+        postApi<FormData, PictureUploadResponse>('/picture', formData)
             .then((_response: PictureUploadResponse) => {
               console.log('Picture uploaded')
             })

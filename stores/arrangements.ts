@@ -1,26 +1,17 @@
 import {defineStore} from 'pinia';
 import type {ArrangementRequest, ArrangementResponse} from '~/types/arrangements';
-import {useToastService} from '~/composables/useToastService';
-import {useDeleteApi, useGetApi, usePatchApi, usePostApi} from '~/composables/fetchApi';
 
 export const useArrangementsStore = defineStore('arrangements', () => {
     const arrangements = ref<ArrangementResponse[]>([]);
     const loading = ref<boolean>(false);
     const error = ref<string | null>(null);
 
-    // Promise that resolves when arrangements are loaded
-    let arrangementsLoadedPromise: Promise<void>;
-    let resolveArrangementsLoaded: () => void;
-    arrangementsLoadedPromise = new Promise((resolve) => {
-        resolveArrangementsLoaded = resolve;
-    });
 
     /**
      * List all user's arrangements
      * GET /arrangement
      */
     const fetchArrangements = async (): Promise<void> => {
-
         loading.value = true;
         error.value = null;
 
@@ -28,7 +19,6 @@ export const useArrangementsStore = defineStore('arrangements', () => {
             const data = await useGetApi<ArrangementResponse[]>(false, '/arrangement');
             if (data) {
                 arrangements.value = data;
-                resolveArrangementsLoaded();
             }
         } catch (err) {
             useToastService().apiError(err as ApiError, 'Failed to fetch arrangements');
@@ -37,6 +27,9 @@ export const useArrangementsStore = defineStore('arrangements', () => {
             loading.value = false;
         }
     };
+
+    // Initialize fetching arrangements when store is created
+    const arrangementsLoadedPromise = useInitializeStore(fetchArrangements);
 
     /**
      * Create a new arrangement
@@ -48,7 +41,7 @@ export const useArrangementsStore = defineStore('arrangements', () => {
         error.value = null;
 
         try {
-            const response = await usePostApi<ArrangementRequest, ArrangementResponse>(
+            const response = await postApi<ArrangementRequest, ArrangementResponse>(
                 false,
                 '/arrangement',
                 arrangement
@@ -81,8 +74,7 @@ export const useArrangementsStore = defineStore('arrangements', () => {
         error.value = null;
 
         try {
-            const response = await usePatchApi<ArrangementRequest, ArrangementResponse>(
-                false,
+            const response = await patchApi<ArrangementRequest, ArrangementResponse>(
                 `/arrangement/${arrangementId}`,
                 arrangement
             );
@@ -118,7 +110,7 @@ export const useArrangementsStore = defineStore('arrangements', () => {
         error.value = null;
 
         try {
-            await useDeleteApi<void, void>(false, `/arrangement/${arrangementId}`, undefined);
+            await deleteApi<void, void>(`/arrangement/${arrangementId}`, undefined);
 
             // Remove the arrangement from the list
             arrangements.value = arrangements.value.filter(a => a.arrangement.id !== arrangementId);
@@ -132,11 +124,6 @@ export const useArrangementsStore = defineStore('arrangements', () => {
             loading.value = false;
         }
     };
-
-    // Initialize fetching arrangements when store is created
-    onMounted(async () => {
-        await fetchArrangements();
-    });
 
     // CONVERSION FUNCTIONS
 

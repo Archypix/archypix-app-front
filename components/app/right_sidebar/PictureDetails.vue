@@ -24,7 +24,7 @@ const fetchPictureDetails = async (force: boolean = false) => {
     const already_loaded = picture_id == picture.value?.id;
     if (!force && already_loaded) return;
 
-    await useGetApi<PictureDetails>(false, '/picture_details/' + picture_id)
+    await getApi<PictureDetails>('/picture_details/' + picture_id)
         .then((data: PictureDetails) => {
           if (!already_loaded) {
             isLoading.value = false;

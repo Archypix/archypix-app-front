@@ -3,6 +3,7 @@
 import type {QueryComponent} from "~/composables/queryStrings";
 import {defineStore} from "pinia";
 import type {ListPictureData, Picture, PicturesQuery} from "~/types/pictures";
+import {useInitializeStore} from "~/composables/useInitializeStore";
 
 export const usePicturesStore = defineStore('pictures', () => {
 
@@ -19,15 +20,6 @@ export const usePicturesStore = defineStore('pictures', () => {
     const page = ref<number>(1)
 
     const route = useRoute();
-    const checkUpdateRoute = () => {
-        const q = route.query.q?.toString();
-        if (q && q != last_query_string_ids.value) {
-            page.value = 1;
-            let _ = query(q)
-        }
-    }
-    watch(route, checkUpdateRoute)
-    onMounted(checkUpdateRoute)
 
     /**
      * Return true if the last_query is a config query (should open a config pane instead of a picture list)
@@ -114,7 +106,7 @@ export const usePicturesStore = defineStore('pictures', () => {
         useRouter().back()
     }
     const get_pictures_details = async (picture_ids: number[]) => {
-        await usePostApi<number[], Picture>(false, '/pictures_details', picture_ids)
+        await postApi<number[], Picture>('/pictures_details', picture_ids)
             .then((data: Picture) => {
                 console.log("Picture details:", data);
             })
@@ -132,7 +124,7 @@ export const usePicturesStore = defineStore('pictures', () => {
         loading.value = false;
     }
     const fetch = async (query: PicturesQuery) => {
-        await usePostApi<PicturesQuery, ListPictureData[]>(false, '/query_pictures', query)
+        await postApi<PicturesQuery, ListPictureData[]>('/query_pictures', query)
             .then((data: ListPictureData[]) => {
                 if (query.page == 1)
                     pictures.value = data;
@@ -143,6 +135,17 @@ export const usePicturesStore = defineStore('pictures', () => {
                 useToastService().apiError(error, "Unable to fetch pictures list");
             })
     }
+
+    // Initialize & update when url changes
+    const checkUpdateRoute = () => {
+        const q = route.query.q?.toString();
+        if (q && q != last_query_string_ids.value) {
+            page.value = 1;
+            let _ = query(q)
+        }
+    }
+    watch(route, checkUpdateRoute)
+    const _promise = useInitializeStore(checkUpdateRoute);
 
     return {
         pictures,

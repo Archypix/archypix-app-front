@@ -8,8 +8,7 @@ const emit = defineEmits(['update:loading']);
 
 watchEffect(() => {
   if (props.picture && props.loading && props.visible) {
-    console.log('Fetching picture ' + props.picture.id + '...')
-    useGetApi<Blob>(false, '/picture/' + props.picture.id + '/medium')
+    getApi<Blob>('/picture/' + props.picture.id + '/medium')
         .then(response => {
           if (response && props.visible) {
             emit('update:loading', false);

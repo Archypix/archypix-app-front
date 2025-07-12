@@ -1,5 +1,8 @@
 <script setup lang="ts">
 await useUserStore().updateStatus()
+// useArrangementsStore().load();
+// usePicturesStore().load();
+// useTagsStore().load();
 
 useHead({
   titleTemplate: 'Archypix',

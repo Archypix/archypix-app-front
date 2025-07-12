@@ -77,7 +77,7 @@ export const useUserStore = defineStore('user', () => {
 
     const signInWithEmail2FA = async (user_email: string, password: string) => {
         let redirect_url = useRoute().query?.r?.toString()
-        return useFetchApi(false, 'POST', null, null, '/auth/signin/email', {email: user_email, password, redirect_url})
+        return fetchApi('POST', null, null, '/auth/signin/email', {email: user_email, password, redirect_url})
             // @ts-ignore cause ts wants type void | SignInResponse but it's SignInResponse
             .then((data: SignInEmailResponse) => {
                 id.value = data.user_id
@@ -88,7 +88,7 @@ export const useUserStore = defineStore('user', () => {
     }
     const signIn = async (user_email: string, password: string, totp_code: string | undefined = undefined) => {
         if (!totp_code) totp_code = undefined
-        return useFetchApi(false, 'POST', null, null, '/auth/signin', {email: user_email, password, totp_code})
+        return fetchApi('POST', null, null, '/auth/signin', {email: user_email, password, totp_code})
             // @ts-ignore cause ts wants type void | SignInResponse but it's SignInResponse
             .then((data: SignInResponse) => signInFromData(data))
 
@@ -103,7 +103,7 @@ export const useUserStore = defineStore('user', () => {
     }
     const signUp = async (name: string, email: string, password: string) => {
         let redirect_url = useRoute().query?.r?.toString()
-        return useFetchApi(false, 'POST', null, null, '/auth/signup', {name, email, password, redirect_url})
+        return fetchApi('POST', null, null, '/auth/signup', {name, email, password, redirect_url})
             // @ts-ignore cause ts wants type void | SignUpResponse but it's SignUpResponse
             .then((data: SignUpResponse) => {
                 id.value = data.user_id
@@ -162,7 +162,7 @@ export const useUserStore = defineStore('user', () => {
             error_type: ErrorType.NoConfirmCodeToken,
             message: 'No confirm code token found, please try again'
         } as ApiError)
-        return useFetchApi(false, 'POST', auth_token.value, id.value, '/auth/confirm/code', {action, code, code_token})
+        return fetchApi('POST', auth_token.value, id.value, '/auth/confirm/code', {action, code, code_token})
             .then((data) => {
                 removeConfirmToken(action)
                 return data

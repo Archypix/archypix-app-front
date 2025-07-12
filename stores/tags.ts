@@ -1,5 +1,5 @@
-import {useDeleteApi, usePatchApi, usePostApi, useGetApi} from "~/composables/fetchApi";
 import {useToastService} from "~/composables/useToastService";
+import {useInitializeStore} from "~/composables/useInitializeStore";
 
 interface AllTagsResponse {
     tag_groups: TagGroupWithTags[];
@@ -41,25 +41,17 @@ export const useTagsStore = defineStore('tags', () => {
 
     const all_tags = ref<TagGroupWithTags[]>([])
 
-    let tags_loaded_promise: Promise<void>;
-    let resolveTagsLoaded: () => void;
-    tags_loaded_promise = new Promise((resolve) => {
-        resolveTagsLoaded = resolve;
-    });
-
-
     const fetch_tags = () => {
-        useGetApi<AllTagsResponse>(false, '/tags')
+        getApi<AllTagsResponse>('/tags')
             .then((res) => {
                 all_tags.value = res.tag_groups
-                resolveTagsLoaded();
             })
             .catch((error: ApiError | null) => {
                 useToastService().apiError(error, "Unable to fetch tags");
             })
     }
 
-    onMounted(() => {
+    const tags_loaded_promise = useInitializeStore(() => {
         fetch_tags();
     });
 
@@ -85,7 +77,7 @@ export const useTagsStore = defineStore('tags', () => {
         };
 
         try {
-            const response = await usePostApi<TagGroupWithTags, TagGroupWithTags>(false, '/tag_group', payload);
+            const response = await postApi<TagGroupWithTags, TagGroupWithTags>('/tag_group', payload);
 
             // Update local state
             all_tags.value.push(response);
@@ -114,7 +106,7 @@ export const useTagsStore = defineStore('tags', () => {
                 edited_tags,
                 deleted_tags_ids
             };
-            const response = await usePatchApi<PatchTagGroupRequest, TagGroupWithTags>(false, '/tag_group', patchTagGroup);
+            const response = await patchApi<PatchTagGroupRequest, TagGroupWithTags>('/tag_group', patchTagGroup);
 
             // Update local state
             const index = all_tags.value.findIndex(tg => tg.tag_group.id === response.tag_group.id);
@@ -137,7 +129,7 @@ export const useTagsStore = defineStore('tags', () => {
      */
     const deleteTagGroup = async (tagGroupId: number) => {
         try {
-            await useDeleteApi(false, '/tag_group', { id: tagGroupId });
+            await deleteApi('/tag_group', { id: tagGroupId });
 
             // Update local state
             const index = all_tags.value.findIndex(tg => tg.tag_group.id === tagGroupId);
@@ -163,7 +155,7 @@ export const useTagsStore = defineStore('tags', () => {
                 add_tag_ids: add_tag_ids,
                 remove_tag_ids: remove_tag_ids
             };
-            let picture_tag_ids = await usePatchApi<{ picture_ids: number[], add_tag_ids: number[], remove_tag_ids: number[] }, number[]>(false, '/picture_tags', payload);
+            let picture_tag_ids = await patchApi<{ picture_ids: number[], add_tag_ids: number[], remove_tag_ids: number[] }, number[]>('/picture_tags', payload);
             useToastService().success("Successfully edited pictures tags");
             return picture_tag_ids;
         } catch (error) {

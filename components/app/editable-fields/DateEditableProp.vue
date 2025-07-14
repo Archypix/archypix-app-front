@@ -51,8 +51,8 @@ watch(() => props.modelValue, (val) => {
   value.value = val ? new Date(val) : null;
 });
 
-function formatDateToLocalISO(date) {
-  const pad = (num) => num.toString().padStart(2, '0');
+function formatDateToLocalISO(date: Date) {
+  const pad = (num: number) => num.toString().padStart(2, '0');
 
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
@@ -80,7 +80,11 @@ const displayValue = computed(() => {
   if (props.modelValue === null) return '∅';
   if (props.modelValue === undefined) return 'mixed';
   const date = new Date(props.modelValue);
-  return props.showTime ? date.toLocaleString() : date.toLocaleDateString();
+  let str = date.toLocaleString('en-US', {day: "numeric", month: 'short', year: 'numeric'});
+  if (props.showTime) {
+    str += ` ${date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', second: props.showSeconds ? '2-digit' : undefined})}`;
+  }
+  return str;
 });
 
 const autoBlur = ref(true);

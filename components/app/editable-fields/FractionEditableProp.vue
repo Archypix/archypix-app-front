@@ -145,28 +145,6 @@ const fraction = computed(() => {
         <InputGroupAddon class="flex-0 min-w-8">
           <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
         </InputGroupAddon>
-
-        <!--        <<>div v-if="allowDecimal" class="text-gray-500 ml-2">-->
-        <!--          ≈ {{ fraction.numerator && fraction.denominator ? (fraction.numerator / fraction.denominator).toFixed(decimalPlaces) : '0' }}-->
-        <!--        </div></>-->
-
-        <!--        <div class="flex gap-1 ml-auto">-->
-        <!--          <Button-->
-        <!--            icon="pi pi-check"-->
-        <!--            size="small"-->
-        <!--            text-->
-        <!--            severity="success"-->
-        <!--            @click="save"-->
-        <!--          />-->
-        <!--          <Button-->
-        <!--            v-if="nullable"-->
-        <!--            icon="pi pi-times"-->
-        <!--            size="small"-->
-        <!--            text-->
-        <!--            severity="danger"-->
-        <!--            @click="emit('update:modelValue', null); emit('save', null);"-->
-        <!--          />-->
-        <!--        </div>-->
       </InputGroup>
     </template>
   </BaseEditableProp>

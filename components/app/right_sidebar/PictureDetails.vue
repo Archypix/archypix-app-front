@@ -121,15 +121,31 @@ watch(tagsStore, async () => {
 
 
 const focal_length = computed({
-  get: () => parseFloat(picture.value?.focal_length) || null,
+  get: () => picture.value?.focal_length ? parseFloat(picture.value.focal_length) ?? null : null,
   set: (value: number | null) => {
-    picture.value.focal_length = value?.toFixed(2) || null;
+    if (!picture.value) return;
+    picture.value.focal_length = value?.toFixed(2) ?? null;
   }
 })
 const f_number = computed({
-  get: () => parseFloat(picture.value?.f_number) || null,
+  get: () => picture.value?.f_number ? parseFloat(picture.value.f_number) || null : null,
   set: (value: number | null) => {
-    picture.value.f_number = value?.toFixed(1) || null;
+    if (!picture.value) return;
+    picture.value.f_number = value?.toFixed(1) ?? null;
+  }
+})
+const latitude = computed({
+  get: () => picture.value?.latitude ? parseFloat(picture.value.latitude) ?? null : null,
+  set: (value: number | null) => {
+    if (!picture.value) return;
+    picture.value.latitude = value?.toFixed(6) || null;
+  }
+})
+const longitude = computed({
+  get: () => picture.value?.longitude ? parseFloat(picture.value.longitude) ?? null : null,
+  set: (value: number | null) => {
+    if (!picture.value) return;
+    picture.value.longitude = value?.toFixed(6) || null;
   }
 })
 
@@ -218,13 +234,14 @@ const f_number = computed({
                 v-model="picture.edition_date"
                 :nullable="false"
             />
-<!--            <LocationEditableProp-->
-<!--                :title="'Location'"-->
-<!--                v-model:latitude="latitude"-->
-<!--                v-model:longitude="longitude"-->
-<!--                @save="savePicture"-->
-<!--                :show-altitude="false"-->
-<!--            />-->
+            <LocationEditableProp
+                :title="'Location'"
+                v-model:latitude="latitude"
+                v-model:longitude="longitude"
+                v-model:altitude="picture.altitude"
+                @save="savePicture"
+                :show-altitude="false"
+            />
 
           <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Latitude, Longitude</span>
             <span>{{ formatLatLng(picture.latitude, picture.longitude) }}</span></li>

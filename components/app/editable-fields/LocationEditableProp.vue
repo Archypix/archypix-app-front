@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import BaseEditableProp from './BaseEditableProp.vue';
-import InputNumber from 'primevue/inputnumber';
-
-interface Coordinates {
-  latitude: number | null;
-  longitude: number | null;
-  altitude?: number | null;
-}
 
 const props = defineProps({
-  modelValue: {
-    type: Object as () => Coordinates | null | undefined,
-    default: null,
+  latitude: {
+    type: [Number, null],
+    required: true,
+  },
+  longitude: {
+    type: [Number, null],
+    required: true,
+  },
+  altitude: {
+    type: [Number, null],
+    required: true
   },
   title: {
     type: String,
@@ -22,7 +22,7 @@ const props = defineProps({
   },
   showAltitude: {
     type: Boolean,
-    default: false
+    default: true
   },
   nullable: {
     type: Boolean,
@@ -43,67 +43,80 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:modelValue', 'save']);
+const emit = defineEmits(['update:latitude', 'update:longitude', 'update:altitude', 'save']);
 
-const latitude = ref(props.modelValue?.latitude ?? null);
-const longitude = ref(props.modelValue?.longitude ?? null);
-const altitude = ref(props.modelValue?.altitude ?? null);
 
-watch(() => props.modelValue, (val) => {
-  latitude.value = val?.latitude ?? null;
-  longitude.value = val?.longitude ?? null;
-  altitude.value = val?.altitude ?? null;
+const latitude = ref(props.latitude);
+const longitude = ref(props.longitude);
+const altitude = ref(props.altitude);
+watch(() => props.latitude, (val) => {
+  latitude.value = val;
+});
+watch(() => props.longitude, (val) => {
+  longitude.value = val;
+});
+watch(() => props.altitude, (val) => {
+  altitude.value = val;
 });
 
 const save = () => {
-  const newValue: Coordinates = {
-    latitude: latitude.value,
-    longitude: longitude.value,
-  };
-  if (props.showAltitude) {
-    newValue.altitude = altitude.value;
+  if (latitude.value !== props.latitude){
+    emit('update:latitude', latitude.value);
   }
-
-  if (newValue.latitude !== props.modelValue?.latitude ||
-      newValue.longitude !== props.modelValue?.longitude ||
-      (props.showAltitude && newValue.altitude !== props.modelValue?.altitude)) {
-    emit('update:modelValue', newValue);
+  if (longitude.value !== props.longitude) {
+    emit('update:longitude', longitude.value);
+  }
+  if (altitude.value !== props.altitude) {
+    emit('update:altitude', altitude.value);
+  }
+  if (latitude.value !== props.latitude || longitude.value !== props.longitude || altitude.value !== props.altitude) {
     emit('save');
   }
 };
-
 const cancel = () => {
-  latitude.value = props.modelValue?.latitude ?? null;
-  longitude.value = props.modelValue?.longitude ?? null;
-  altitude.value = props.modelValue?.altitude ?? null;
+  latitude.value = props.latitude ?? null;
+  longitude.value = props.longitude ?? null;
+  altitude.value = props.altitude ?? null;
 };
 
 const displayValue = computed(() => {
-  if (!props.modelValue || props.modelValue.latitude === null || props.modelValue.longitude === null) {
+  if (!props.latitude === null || props.longitude === null) {
     return null;
   }
-  let formatted = `${props.modelValue.latitude.toFixed(4)}, ${props.modelValue.longitude.toFixed(4)}`;
-  if (props.showAltitude && props.modelValue.altitude !== null && props.modelValue.altitude !== undefined) {
-    formatted += `, ${props.modelValue.altitude.toFixed(1)}m`;
+  let formatted = `${formatLat(props.latitude)} ${formatLat(props.longitude)}°E`;
+  if (props.showAltitude && props.altitude !== null && props.altitude !== undefined) {
+    formatted += ` ${Math.floor(props.altitude)}m`;
   }
   return formatted;
 });
+const formatLat = (lat: number | null) => {
+  if (lat === null) return '∅';
+  const absLat = Math.abs(lat);
+  const degrees = Math.floor(absLat);
+  const minutes = Math.floor((absLat - degrees) * 60);
+  const seconds = ((absLat - degrees - minutes / 60) * 3600).toFixed(2);
+  return `${degrees}°${minutes}'${seconds}"${lat >= 0 ? 'N' : 'S'}`;
+};
+
+const showMap = ref(false);
 
 </script>
 
 <template>
   <BaseEditableProp
-    :value="displayValue"
-    :title="title"
-    @save="save"
-    @cancel="cancel"
+      :value="displayValue"
+      :title="title"
+      @save="save"
+      @cancel="cancel"
   >
     <template #input="{ save, cancel }">
-      <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-2">
-          <InputNumber
+      <InputGroup class="rounded-xs">
+        <InputNumber
             v-model="latitude"
-            class="w-32 py-0.5 px-2 text-sm"
+            size="small"
+            :pt="{
+              pcInputText: { root: {class: 'py-0.5 px-2 text-sm w-5'}},
+            }"
             placeholder="Latitude"
             :min="-90"
             :max="90"
@@ -112,10 +125,13 @@ const displayValue = computed(() => {
             @keydown.enter="save"
             @keydown.esc="cancel"
             @blur="save"
-          />
-          <InputNumber
+        />
+        <InputNumber
             v-model="longitude"
-            class="w-32 py-0.5 px-2 text-sm"
+            size="small"
+            :pt="{
+              pcInputText: { root: {class: 'py-0.5 px-2 text-sm w-5'}},
+            }"
             placeholder="Longitude"
             :min="-180"
             :max="180"
@@ -124,77 +140,44 @@ const displayValue = computed(() => {
             @keydown.enter="save"
             @keydown.esc="cancel"
             @blur="save"
-          />
-          <Button
+        />
+        <Button
             v-if="showMapButton"
             icon="pi pi-map"
-            class="self-end mb-1"
-            text
-            @click="openMap"
+            class="p-0"
+            @click="showMap = true"
             v-tooltip="'Open map'"
-          />
-        </div>
-        <InputNumber
-          v-if="showAltitude"
-          v-model="altitude"
-          class="w-full py-0.5 px-2 text-sm"
-          placeholder="Altitude (m)"
-          :minFractionDigits="1"
-          :maxFractionDigits="2"
-          @keydown.enter="save"
-          @keydown.esc="cancel"
-          @blur="save"
         />
-        <div class="flex justify-between items-center mt-2">
-          <div v-if="latitude !== null && longitude !== null" class="text-xs">
-            <a
-              :href="`https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`"
-              target="_blank"
-              class="text-primary-600 hover:underline"
-              @click.stop
-            >
-              View on OpenStreetMap
-            </a>
-          </div>
-
-          <div class="flex gap-1 ml-auto">
-            <Button
-              icon="pi pi-check"
-              size="small"
-              text
-              severity="success"
-              @click="save"
-            />
-            <Button
-              v-if="nullable"
-              icon="pi pi-times"
-              size="small"
-              text
-              severity="danger"
-              @click="emit('update:modelValue', null); emit('save');"
-            />
-          </div>
-        </div>
-      </div>
+      </InputGroup>
     </template>
   </BaseEditableProp>
 
   <!-- Map Modal -->
   <Dialog
-    v-model:visible="showMap"
-    modal
-    header="Select Location on Map"
-    :style="{ width: '90vw', maxWidth: '800px' }"
+      v-model:visible="showMap"
+      modal
+      header="Select Location on Map"
+      :style="{ width: '90vw', maxWidth: '800px' }"
   >
     <div class="map-container" style="height: 60vh; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
-      <p class="text-gray-500">Map integration would go here</p>
-      <!-- In a real implementation, you would integrate with a map library like Leaflet or Google Maps -->
+      <LMap
+          :zoom="6"
+          :center="[latitude ?? 0, longitude ?? 0]"
+          :use-global-leaflet="false"
+      >
+        <LTileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="&amp;copy; <a href=&quot;https://www.openstreetmap.org/&quot;>OpenStreetMap</a> contributors"
+            layer-type="base"
+            name="OpenStreetMap"
+        />
+      </LMap>
     </div>
     <template #footer>
       <div class="flex justify-content-end gap-2">
-        <Button label="Cancel" icon="pi pi-times" text @click="showMap = false" />
-        <Button label="Use Current Location" icon="pi pi-crosshairs" @click="handleMapSelect(0, 0)" />
-        <Button label="Save Location" icon="pi pi-check" @click="save" />
+        <Button label="Cancel" icon="pi pi-times" text @click="showMap = false"/>
+        <!--        <Button label="Use Current Location" icon="pi pi-crosshairs" @click="handleMapSelect(0, 0)" />-->
+        <Button label="Save Location" icon="pi pi-check" @click="save"/>
       </div>
     </template>
   </Dialog>

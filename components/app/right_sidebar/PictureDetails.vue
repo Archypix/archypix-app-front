@@ -224,30 +224,24 @@ const longitude = computed({
       <div class="mt-2">
         <div class="font-medium mb-0.5">Editable exif data</div>
         <ul class="attributes-list list-none p-0 m-0">
-            <DateEditableProp
-                :title="'Creation Date'"
-                v-model="picture.creation_date"
-                :nullable="false"
-            />
-            <DateEditableProp
-                :title="'Edition Date'"
-                v-model="picture.edition_date"
-                :nullable="false"
-            />
-            <LocationEditableProp
-                :title="'Location'"
-                v-model:latitude="latitude"
-                v-model:longitude="longitude"
-                v-model:altitude="picture.altitude"
-                @save="savePicture"
-                :show-altitude="false"
-            />
-
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Latitude, Longitude</span>
-            <span>{{ formatLatLng(picture.latitude, picture.longitude) }}</span></li>
-          <li class="flex gap-2 text-sm text-gray-700 mb-0.5"><span class="min-w-[120px] text-gray-400">Altitude</span>
-            <span>{{ picture.altitude !== null ? picture.altitude : '-' }}</span></li>
-
+          <DateEditableProp
+              :title="'Creation Date'"
+              v-model="picture.creation_date"
+              :nullable="false"
+          />
+          <DateEditableProp
+              :title="'Edition Date'"
+              v-model="picture.edition_date"
+              :nullable="false"
+          />
+          <LocationEditableProp
+              :title="'Location'"
+              v-model:latitude="latitude"
+              v-model:longitude="longitude"
+              v-model:altitude="picture.altitude"
+              @save="savePicture"
+              :show-altitude="false"
+          />
           <NumberEditableProp
               title="Altitude"
               v-model="picture.altitude"

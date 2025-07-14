@@ -22,7 +22,7 @@ const props = defineProps({
   },
   showAltitude: {
     type: Boolean,
-    default: true
+    default: false
   },
   nullable: {
     type: Boolean,
@@ -44,7 +44,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:latitude', 'update:longitude', 'update:altitude', 'save']);
-
 
 const latitude = ref(props.latitude);
 const longitude = ref(props.longitude);
@@ -83,23 +82,60 @@ const displayValue = computed(() => {
   if (!props.latitude === null || props.longitude === null) {
     return null;
   }
-  let formatted = `${formatLat(props.latitude)} ${formatLat(props.longitude)}°E`;
+  let formatted = `${formatLat(props.latitude)} ${formatLong(props.longitude)}`;
   if (props.showAltitude && props.altitude !== null && props.altitude !== undefined) {
     formatted += ` ${Math.floor(props.altitude)}m`;
   }
   return formatted;
 });
+const formatCoordinate = (value: number) => {
+  const absValue = Math.abs(value);
+  const degrees = Math.floor(absValue);
+  const minutes = Math.floor((absValue - degrees) * 60);
+  const seconds = Math.round((absValue - degrees - minutes / 60) * 3600);
+  return `${degrees}°${minutes}'${seconds}"`;
+};
 const formatLat = (lat: number | null) => {
   if (lat === null) return '∅';
-  const absLat = Math.abs(lat);
-  const degrees = Math.floor(absLat);
-  const minutes = Math.floor((absLat - degrees) * 60);
-  const seconds = ((absLat - degrees - minutes / 60) * 3600).toFixed(2);
-  return `${degrees}°${minutes}'${seconds}"${lat >= 0 ? 'N' : 'S'}`;
+  return `${formatCoordinate(lat)}${lat >= 0 ? 'N' : 'S'}`;
+};
+const formatLong = (long: number | null) => {
+  if (long === null) return '∅';
+  return `${formatCoordinate(long)}${long >= 0 ? 'E' : 'W'}`;
 };
 
 const showMap = ref(false);
+const selectedLat = ref(latitude.value ?? 0);
+const selectedLng = ref(longitude.value ?? 0);
 
+watch(showMap, (val) => {
+  if (val) {
+    selectedLat.value = latitude.value ?? 0;
+    selectedLng.value = longitude.value ?? 0;
+  }
+});
+
+function onMapClick(e: any) {
+  selectedLat.value = e.latlng.lat;
+  selectedLng.value = e.latlng.lng;
+}
+
+async function useCurrentLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition((pos) => {
+    selectedLat.value = pos.coords.latitude;
+    selectedLng.value = pos.coords.longitude;
+  });
+}
+
+function saveLocation() {
+  latitude.value = selectedLat.value;
+  longitude.value = selectedLng.value;
+  emit('update:latitude', selectedLat.value);
+  emit('update:longitude', selectedLng.value);
+  showMap.value = false;
+  emit('save');
+}
 </script>
 
 <template>
@@ -161,9 +197,11 @@ const showMap = ref(false);
   >
     <div class="map-container" style="height: 60vh; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
       <LMap
-          :zoom="6"
-          :center="[latitude ?? 0, longitude ?? 0]"
+          :zoom="10"
+          :center="[selectedLat, selectedLng]"
           :use-global-leaflet="false"
+          style="height:100%; width:100%; cursor: default;"
+          @click="onMapClick"
       >
         <LTileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -171,24 +209,28 @@ const showMap = ref(false);
             layer-type="base"
             name="OpenStreetMap"
         />
+        <LMarker
+            style="cursor: default; pointer-events: none;"
+            :lat-lng="[selectedLat, selectedLng]" />
       </LMap>
     </div>
     <template #footer>
       <div class="flex justify-content-end gap-2">
         <Button label="Cancel" icon="pi pi-times" text @click="showMap = false"/>
-        <!--        <Button label="Use Current Location" icon="pi pi-crosshairs" @click="handleMapSelect(0, 0)" />-->
-        <Button label="Save Location" icon="pi pi-check" @click="save"/>
+        <Button label="Use Current Location" icon="pi pi-crosshairs" @click="useCurrentLocation" />
+        <Button label="Save Location" icon="pi pi-check" @click="saveLocation"/>
       </div>
     </template>
   </Dialog>
 </template>
 
 <style scoped>
-:deep(.p-inputtext) {
-  text-align: left;
+:deep(img.leaflet-marker-icon) {
+  pointer-events: none;
 }
 .map-container {
   border-radius: 4px;
   overflow: hidden;
 }
 </style>
+

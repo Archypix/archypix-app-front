@@ -2,24 +2,19 @@
   <div>
     <Toast />
     <slot/>
+    <UploadManager />
   </div>
 </template>
 
 <script setup lang="ts">
 import {useUserStore} from "~/stores/user";
-import type {ApiError} from "~/composables/fetchApi";
-import {useToastService} from "~/composables/useToastService";
+import Toast from 'primevue/toast';
+import UploadManager from '~/components/app/upload/UploadManager.vue';
+import {useRouter} from 'vue-router';
 
 const user = useUserStore()
 if (!user.isLoggedIn()) {
   useRouter().push('/signin')
-}
-
-const allowDrag = (e: DragEvent) => {
-  e.preventDefault()
-  if(e.dataTransfer){
-    e.dataTransfer.dropEffect = 'copy'
-  }
 }
 
 enum PictureOrientation {
@@ -57,36 +52,6 @@ type Picture = {
   iso_speed: number | null,
   f_number: number,
 }
-type PictureUploadResponse = {
-  name: String,
-  picture: Picture,
-  thumbnail_error: ApiError | null,
-}
-
-onMounted(() => {
-  window.addEventListener("dragenter", allowDrag);
-  window.addEventListener("dragover", allowDrag);
-  window.addEventListener("drop", e => {
-    e.preventDefault()
-    console.log(e.dataTransfer?.files);
-    if(e.dataTransfer) {
-      for (let i = 0; i < e.dataTransfer.files.length; i++) {
-        let file = e.dataTransfer.files[i];
-
-        const formData = new FormData()
-        formData.append('file', file);
-
-        postApi<FormData, PictureUploadResponse>('/picture', formData)
-            .then((_response: PictureUploadResponse) => {
-              console.log('Picture uploaded')
-            })
-            .catch((error: ApiError | null) => {
-              useToastService().apiError(error, "Unable to upload picture");
-            });
-      }
-    }
-  });
-})
 
 
 </script>

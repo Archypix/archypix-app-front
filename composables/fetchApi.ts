@@ -1,7 +1,6 @@
 import {useUserStore} from "~/stores/user";
 import {hash} from "ohash";
 
-
 export enum ErrorType {
     BadRequest = 'BadRequest',
     Unauthorized = 'Unauthorized',
@@ -29,6 +28,7 @@ export enum ErrorType {
     // Database error
     DatabaseError = 'DatabaseError',
     // Front end
+    UnknownError = 'UnknownError',
     NoConfirmCodeToken = 'NoConfirmCodeToken',
     CantReachApi = 'CantReachApi',
 
@@ -45,16 +45,26 @@ export type HttpError = {
     data: ApiError | null
 }
 
+interface HttpRes {
+    statusCode: number,
+    statusMessage: string,
+    data: any
+}
+
 const genericFetchApi = async function <B, R>(ssr: boolean, method: string, auth_token: string | null | undefined,
                                               id: string | null | undefined, path: string, body: B, useUseFetch: boolean): Promise<R> {
 
-    return new Promise<R>(async (resolve: (data: R) => void, reject: (error: ApiError | null) => void) => {
+    return new Promise<R>(async (resolve: (data: R) => void, reject: (error: ApiError) => void) => {
         const backend_host = import.meta.server ? useRuntimeConfig()?.public?.backendHostSSR : useRuntimeConfig()?.public?.backendHost;
 
-        let data: R | undefined = undefined;
-        let error: HttpError | null = null;
+        let response: HttpRes = {
+            statusCode: 500,
+            statusMessage: 'Internal Server Error',
+            data: null
+        };
         if (useUseFetch) {
             console.log('useFetchApi', 'method:', method, 'ssr:', ssr, `(${import.meta.server})`, 'uid:', id, 'path:', path, 'body:', body)
+            // @ts-ignore
             let result = await useFetch<R, HttpError>(backend_host + path, {
                 key: hash([ssr, method, auth_token, id, path, body]),
                 method: method,
@@ -65,14 +75,25 @@ const genericFetchApi = async function <B, R>(ssr: boolean, method: string, auth
                 },
                 server: ssr,
                 body: body,
-            })
-            data = result.data?.value;
-            error = result.error?.value ?? null;
+            });
+            if (result.data?.value) {
+                response = {
+                    statusCode: 200,
+                    statusMessage: 'OK',
+                    data: result.data.value,
+                }
+            } else if (result.error?.value) {
+                response = {
+                    statusCode: result.error.value.statusCode,
+                    statusMessage: result.error.value.statusMessage,
+                    data: result.error.value.data,
+                }
+            }
         } else {
             console.log('fetchApi', 'method:', method, 'uid:', id, 'path:', path, 'body:', body)
-            try {
-                data = await $fetch<R, HttpError>(backend_host + path, {
-                    key: hash([ssr, method, auth_token, id, path, body]),
+            response = await new Promise<HttpRes>((resolve, _reject) => {
+                // @ts-ignore
+                $fetch<R, null>(backend_host + path, {
                     method: method,
                     headers: {
                         'User-Agent': window.navigator.userAgent,
@@ -81,35 +102,42 @@ const genericFetchApi = async function <B, R>(ssr: boolean, method: string, auth
                     },
                     server: ssr,
                     body: body,
+                    async onResponse({response}) {
+                        resolve({
+                            statusCode: response.status,
+                            statusMessage: response.statusText,
+                            data: response._data,
+                        });
+                    },
                 })
-            } catch (e) {
-                error = e?.value;
-            }
+                    .then(() => {
+                    })
+                    .catch(() => {
+                    })
+            });
         }
 
-        // Handle successful responses
-        if (!error) {
-            // For empty responses with 200 OK status
-            if (data === null) {
+        if (response.statusCode === 200) {
+            if (!response.data) {
                 console.log('useFetchApi', 'Success: Empty response')
                 resolve(undefined as unknown as R)
             } else {
-                console.log('useFetchApi', 'Success:', data)
-                resolve(data as R)
+                console.log('useFetchApi', 'Success:', response.data)
+                resolve(response.data as R)
             }
+
         } else {
-            let error_data = error?.data ?? null;
-            if (error_data == null) {
-                console.error('useFetchApi', 'Unknown error:', error?.statusCode, error?.statusMessage, error)
-                error_data = {
-                    error_type: ErrorType.CantReachApi,
-                    message: 'Unable to reach the API, please try again later',
+            if (!response.data) {
+                console.error('useFetchApi', 'Unknown error:', response?.statusCode, response?.statusMessage, response.data)
+                reject({
+                    error_type: ErrorType.UnknownError,
+                    message: `Unknown error: ${response?.statusCode} ${response?.statusMessage}`,
                     rollback: true
-                }
+                })
             } else {
-                console.log('useFetchApi', 'Known error:', error_data.error_type, '-', error_data.message)
+                console.log('useFetchApi', 'Known error:', response.data.error_type, '-', response.data.message)
+                reject(response.data as ApiError)
             }
-            reject(error_data)
         }
     })
 }

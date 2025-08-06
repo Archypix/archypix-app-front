@@ -6,6 +6,10 @@ const props = defineProps({
     type: [String, Number, null, undefined],
     default: null
   },
+  edited: {
+    type: Boolean,
+    default: false,
+  },
   title: {
     type: String,
   },
@@ -38,15 +42,18 @@ const displayValue = computed(() => {
 });
 
 const slotDivRef = ref<HTMLElement | null>(null);
+
 function down() {
   if (props.readonly || isEditing.value) return;
-  isEditing.value = true;
 }
-function up() {
-  if (props.readonly || !isEditing.value) return;
+
+function up(e: MouseEvent) {
+  if (props.readonly || isEditing.value) return;
+  isEditing.value = true;
   nextTick(() => {
-    focusFirstChild(slotDivRef.value);
-  });
+    if (slotDivRef.value)
+      focusFirstChild(slotDivRef.value);
+  })
 }
 
 function save() {
@@ -72,6 +79,7 @@ const liRef = ref<HTMLElement | null>(null);
 
 onClickOutside(liRef, () => {
   if (isEditing.value && props.autoBlur) {
+    console.log("Clicked outside, saving...");
     save();
   }
 });
@@ -84,17 +92,31 @@ onClickOutside(liRef, () => {
         'flex flex-1 items-start text-gray-700 gap-2 text-sm px-1.5 -mx-1.5 rounded': true,
         'hover:bg-gray-100 cursor-pointer': !readonly
       }"
-      @mousedown.prevent="down"
-      @mouseup.prevent="up"
+      @mousedown="down"
+      @mouseup="up"
   >
-    <span class="min-w-[100px] text-gray-500 text-sm/6">{{ title }}</span>
-    <div v-if="!isEditing" class="flex-1 min-w-0 rounded py-0.5 px-2">
+    <span class="min-w-[100px] text-gray-500 text-sm/6 flex items-center gap-1">
+      {{ title }}
+      <div v-if="edited" class="point-div"/>
+    </span>
+    <div class="flex-1 min-w-0 rounded py-0.5 px-2" :style="[isEditing ? 'display: none;' : '']">
       <span :class="{ 'text-gray-500': value === null || value === undefined }">
         <span class="text-gray-500">{{ prefix }}</span>{{ displayValue }}<span class="text-gray-500">{{ suffix }}</span>
       </span>
     </div>
-    <div v-else class="flex-1 flex items-center gap-1 h-6" ref="slotDivRef">
-      <slot name="input" v-bind="{ save, cancel }"></slot>
+    <div v-if="isEditing" class="flex-1 flex items-center gap-1 h-6" ref="slotDivRef" @ontouchstart.stop>
+      <slot name="input"
+            v-bind="{ save, cancel }"
+      />
     </div>
   </li>
 </template>
+
+<style lang="stylus" scoped>
+div.point-div {
+  width 5px
+  height 5px
+  background-color: var(--p-blue-500);
+  border-radius: 50%;
+}
+</style>

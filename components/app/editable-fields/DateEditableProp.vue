@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import BaseEditableProp from './BaseEditableProp.vue';
-import Calendar from 'primevue/calendar';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
 import Button from 'primevue/button';
+import {formatDateToLocalISO, formatDateToTimeString} from "~/composables/formatUtils";
 
 const props = defineProps({
   modelValue: {
+    type: [String, null, undefined],
+    default: null,
+  },
+  originalValue: {
     type: [String, null, undefined],
     default: null,
   },
@@ -51,19 +55,6 @@ watch(() => props.modelValue, (val) => {
   value.value = val ? new Date(val) : null;
 });
 
-function formatDateToLocalISO(date: Date) {
-  const pad = (num: number) => num.toString().padStart(2, '0');
-
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-}
-
 const save = () => {
   const newValue = value.value ? formatDateToLocalISO(value.value) : null;
   if (newValue !== props.modelValue && newValue !== null) {
@@ -73,18 +64,17 @@ const save = () => {
 };
 
 const cancel = () => {
-  value.value = props.modelValue ? new Date(props.modelValue) : null;
+  value.value = props.modelValue ? new Date(props.modelValue) : props.modelValue;
+};
+const reset = () => {
+  value.value = props.originalValue ? new Date(props.originalValue) : props.originalValue;
+  save()
 };
 
 const displayValue = computed(() => {
   if (props.modelValue === null) return '∅';
   if (props.modelValue === undefined) return 'mixed';
-  const date = new Date(props.modelValue);
-  let str = date.toLocaleString('en-US', {day: "numeric", month: 'short', year: 'numeric'});
-  if (props.showTime) {
-    str += ` ${date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', second: props.showSeconds ? '2-digit' : undefined})}`;
-  }
-  return str;
+  return formatDateToTimeString(props.modelValue, props.showTime, props.showSeconds);
 });
 
 const autoBlur = ref(true);
@@ -94,6 +84,7 @@ const autoBlur = ref(true);
 <template>
   <BaseEditableProp
     :value="displayValue"
+    :edited="originalValue !== modelValue"
     :title="title"
     :auto-blur="autoBlur"
     @save="save"
@@ -119,7 +110,7 @@ const autoBlur = ref(true);
           @hide="autoBlur = true"
         />
         <InputGroupAddon class="flex-0 min-w-8">
-          <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
+          <Button @click="reset" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
         </InputGroupAddon>
       </InputGroup>
     </template>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 
+import {formatLat, formatLong} from "~/composables/formatUtils";
+
 const props = defineProps({
   latitude: {
     type: [Number, null],
@@ -12,6 +14,18 @@ const props = defineProps({
   altitude: {
     type: [Number, null],
     required: true
+  },
+  originalLatitude: {
+    type: [Number, null],
+    default: null,
+  },
+  originalLongitude: {
+    type: [Number, null],
+    default: null,
+  },
+  originalAltitude: {
+    type: [Number, null],
+    default: null,
   },
   title: {
     type: String,
@@ -58,8 +72,14 @@ watch(() => props.altitude, (val) => {
   altitude.value = val;
 });
 
+const edited = computed(() => {
+  return props.latitude !== props.originalLatitude
+      || props.longitude !== props.originalLongitude
+      || (props.showAltitude && props.altitude !== props.originalAltitude);
+})
+
 const save = () => {
-  if (latitude.value !== props.latitude){
+  if (latitude.value !== props.latitude) {
     emit('update:latitude', latitude.value);
   }
   if (longitude.value !== props.longitude) {
@@ -72,11 +92,6 @@ const save = () => {
     emit('save');
   }
 };
-const cancel = () => {
-  latitude.value = props.latitude ?? null;
-  longitude.value = props.longitude ?? null;
-  altitude.value = props.altitude ?? null;
-};
 
 const displayValue = computed(() => {
   if (!props.latitude === null || props.longitude === null) {
@@ -88,21 +103,7 @@ const displayValue = computed(() => {
   }
   return formatted;
 });
-const formatCoordinate = (value: number) => {
-  const absValue = Math.abs(value);
-  const degrees = Math.floor(absValue);
-  const minutes = Math.floor((absValue - degrees) * 60);
-  const seconds = Math.round((absValue - degrees - minutes / 60) * 3600);
-  return `${degrees}°${minutes}'${seconds}"`;
-};
-const formatLat = (lat: number | null) => {
-  if (lat === null) return '∅';
-  return `${formatCoordinate(lat)}${lat >= 0 ? 'N' : 'S'}`;
-};
-const formatLong = (long: number | null) => {
-  if (long === null) return '∅';
-  return `${formatCoordinate(long)}${long >= 0 ? 'E' : 'W'}`;
-};
+
 
 const showMap = ref(false);
 const selectedLat = ref(latitude.value ?? 0);
@@ -136,11 +137,29 @@ function saveLocation() {
   showMap.value = false;
   emit('save');
 }
+
+function cancel() {
+  showMap.value = false;
+  latitude.value = props.latitude ?? null;
+  longitude.value = props.longitude ?? null;
+  if (props.showAltitude)
+    altitude.value = props.altitude ?? null;
+}
+function reset() {
+  showMap.value = false;
+  latitude.value = props.originalLatitude ?? null;
+  longitude.value = props.originalLongitude ?? null;
+  if (props.showAltitude)
+    altitude.value = props.originalAltitude ?? null;
+  save()
+}
+
 </script>
 
 <template>
   <BaseEditableProp
       :value="displayValue"
+      :edited="edited"
       :title="title"
       @save="save"
       @cancel="cancel"
@@ -160,7 +179,6 @@ function saveLocation() {
             :maxFractionDigits="6"
             @keydown.enter="save"
             @keydown.esc="cancel"
-            @blur="save"
         />
         <InputNumber
             v-model="longitude"
@@ -175,7 +193,6 @@ function saveLocation() {
             :maxFractionDigits="6"
             @keydown.enter="save"
             @keydown.esc="cancel"
-            @blur="save"
         />
         <Button
             v-if="showMapButton"
@@ -211,14 +228,19 @@ function saveLocation() {
         />
         <LMarker
             style="cursor: default; pointer-events: none;"
-            :lat-lng="[selectedLat, selectedLng]" />
+            :lat-lng="[selectedLat, selectedLng]"/>
       </LMap>
     </div>
     <template #footer>
-      <div class="flex justify-content-end gap-2">
-        <Button label="Cancel" icon="pi pi-times" text @click="showMap = false"/>
-        <Button label="Use Current Location" icon="pi pi-crosshairs" @click="useCurrentLocation" />
-        <Button label="Save Location" icon="pi pi-check" @click="saveLocation"/>
+      <div class="flex justify-between gap-4 w-full">
+        <div class="flex gap-2">
+          <Button label="Reset" text severity="danger" @click="reset"/>
+          <Button label="Cancel" text severity="danger" @click="cancel"/>
+        </div>
+        <div class="flex justify-content-end gap-5">
+          <Button label="Use Current Location" icon="pi pi-map-marker" severity="secondary" @click="useCurrentLocation"/>
+          <Button label="Save" icon="pi pi-check" severity="success" @click="saveLocation"/>
+        </div>
       </div>
     </template>
   </Dialog>

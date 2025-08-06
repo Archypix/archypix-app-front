@@ -42,7 +42,6 @@ export const useArrangementsStore = defineStore('arrangements', () => {
 
         try {
             const response = await postApi<ArrangementRequest, ArrangementResponse>(
-                false,
                 '/arrangement',
                 arrangement
             );

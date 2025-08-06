@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {Picture, PictureDetails, Rating} from "~/types/pictures";
 import {watch} from "vue";
+import {formatDateToTimeString} from "~/composables/formatUtils";
 
 // Initialize stores
 const tagsStore = useTagsStore();
@@ -11,6 +12,7 @@ const isLoading = ref<boolean>(true);
 const pictureLoading = ref<boolean>(true);
 
 const picture = ref<Picture | null>(null);
+const editedPicture = ref<Picture | null>(null);
 const ratings = ref<Rating[]>([]);
 const tags_ids = ref<number[]>([]);
 
@@ -26,13 +28,32 @@ const fetchPictureDetails = async (force: boolean = false) => {
 
     await getApi<PictureDetails>('/picture_details/' + picture_id)
         .then((data: PictureDetails) => {
+          picture.value = data.picture;
+          editedPicture.value = structuredClone(data.picture);
+          ratings.value = data.ratings;
+          tags_ids.value = data.tags_ids;
           if (!already_loaded) {
             isLoading.value = false;
             pictureLoading.value = true;
           }
+        })
+        .catch((error: ApiError | null) => {
+          useToastService().apiError(error, "Unable to fetch picture details");
+        })
+  }else {
+    const already_loaded = picture_id == picture.value?.id;
+    if (!force && already_loaded) return;
+
+    await getApi<PictureDetails>('/picture_details/' + picture_id)
+        .then((data: PictureDetails) => {
           picture.value = data.picture;
+          editedPicture.value = structuredClone(data.picture);
           ratings.value = data.ratings;
           tags_ids.value = data.tags_ids;
+          if (!already_loaded) {
+            isLoading.value = false;
+            pictureLoading.value = true;
+          }
         })
         .catch((error: ApiError | null) => {
           useToastService().apiError(error, "Unable to fetch picture details");
@@ -80,13 +101,8 @@ function formatDate(date: string | null) {
   return d.toLocaleString();
 }
 
-const formatLatLng = (lat: string | null, lng: string | null) => {
-  if (!lat || !lng) return '-';
-  return `${lat}, ${lng}`;
-}
-
 const savePicture = () => {
-  if (!picture.value) return;
+  if (!editedPicture.value) return;
 
   // Call your API to save the picture data here
   // Example:
@@ -120,46 +136,74 @@ watch(tagsStore, async () => {
 }, {immediate: false});
 
 
+const original_focal_length = computed(() => {
+  return picture.value?.focal_length ? parseFloat(picture.value.focal_length) ?? null : null;
+})
 const focal_length = computed({
-  get: () => picture.value?.focal_length ? parseFloat(picture.value.focal_length) ?? null : null,
+  get: () => editedPicture.value?.focal_length ? parseFloat(editedPicture.value.focal_length) ?? null : null,
   set: (value: number | null) => {
-    if (!picture.value) return;
-    picture.value.focal_length = value?.toFixed(2) ?? null;
+    if (!editedPicture.value) return;
+    editedPicture.value.focal_length = value?.toFixed(2) ?? null;
   }
+})
+const original_f_number = computed(() => {
+  return picture.value?.f_number ? parseFloat(picture.value.f_number) || null : null;
 })
 const f_number = computed({
-  get: () => picture.value?.f_number ? parseFloat(picture.value.f_number) || null : null,
+  get: () => editedPicture.value?.f_number ? parseFloat(editedPicture.value.f_number) || null : null,
   set: (value: number | null) => {
-    if (!picture.value) return;
-    picture.value.f_number = value?.toFixed(1) ?? null;
+    if (!editedPicture.value) return;
+    editedPicture.value.f_number = value?.toFixed(1) ?? null;
   }
+})
+const original_latitude = computed(() => {
+  return picture.value?.latitude ? parseFloat(picture.value.latitude) ?? null : null;
 })
 const latitude = computed({
-  get: () => picture.value?.latitude ? parseFloat(picture.value.latitude) ?? null : null,
+  get: () => editedPicture.value?.latitude ? parseFloat(editedPicture.value.latitude) ?? null : null,
   set: (value: number | null) => {
-    if (!picture.value) return;
-    picture.value.latitude = value?.toFixed(6) || null;
+    if (!editedPicture.value) return;
+    editedPicture.value.latitude = value?.toFixed(6) || null;
   }
+})
+const original_longitude = computed(() => {
+  return picture.value?.longitude ? parseFloat(picture.value.longitude) ?? null : null;
 })
 const longitude = computed({
-  get: () => picture.value?.longitude ? parseFloat(picture.value.longitude) ?? null : null,
+  get: () => editedPicture.value?.longitude ? parseFloat(editedPicture.value.longitude) ?? null : null,
   set: (value: number | null) => {
-    if (!picture.value) return;
-    picture.value.longitude = value?.toFixed(6) || null;
+    if (!editedPicture.value) return;
+    editedPicture.value.longitude = value?.toFixed(6) || null;
   }
 })
+
+const pictureWidth = computed(() => {
+  if(!editedPicture.value) return "";
+  let h = 250;
+  let w = h * editedPicture.value?.width / editedPicture.value?.height;
+  return `max-width: ${w}px`;
+});
 
 </script>
 
 <template>
-  <div class="flex flex-col items-stretch p-2 mx-auto font-sans" v-if="picture">
-    <div class="w-full">
-      <Picture :picture="picture" :visible="true" v-model:loading="pictureLoading"/>
+  <div class="flex flex-col items-stretch p-2 mx-auto font-sans" v-if="picture && editedPicture">
+    <div class="flex justify-center w-full">
+      <div class="mb-2 grow" :style="pictureWidth">
+        <editedPicture :picture="editedPicture" :visible="true" v-model:loading="pictureLoading"/>
+      </div>
     </div>
     <div class="flex flex-col gap-2 p-2">
-      <div class="inline-flex items-baseline gap-2 justify-between font-medium text-lg">
-        <span>{{ picture.name }}</span>
-        <span class="text-gray-500">{{ picture.size_ko < 1000 ? picture.size_ko + ' Ko' : (picture.size_ko / 1000).toFixed(1) + ' Mo' }}</span>
+      <div class="flex flex-col gap-0.5">
+        <div class="inline-flex items-baseline gap-2 justify-between font-medium text-lg">
+          <span>{{ picture.name }}</span>
+          <span class="text-gray-500">{{
+              picture.size_ko < 1000 ? picture.size_ko + ' Ko' : (picture.size_ko / 1000).toFixed(1) + ' Mo'
+            }}</span>
+        </div>
+        <div v-if="picture.deleted_date !== null">
+          <span class="text-red-600">Deleted on {{ formatDateToTimeString(picture.deleted_date, true) }}</span>
+        </div>
       </div>
       <div class="text-gray-500 italic text-base">{{ picture.comment }}</div>
       <div class="flex items-center justify-between gap-3">
@@ -187,7 +231,7 @@ const longitude = computed({
           <!--          </button>-->
 
           <TagSelector
-              v-if="picture"
+              v-if="editedPicture"
               :picture-tags="tags_ids"
               @update="updatePictureTags"
           />
@@ -213,11 +257,13 @@ const longitude = computed({
         <ul class="attributes-list list-none p-0 m-0">
           <BaseEditableProp
               title="Resolution"
-              :value="picture.width + ' × ' + picture.height"
+              :value="editedPicture.width + ' × ' + editedPicture.height"
+              :original-value="picture.width + ' × ' + picture.height"
               :readonly="true"/>
           <BaseEditableProp
               title="Orientation"
-              :value="picture.orientation"
+              :value="editedPicture.orientation"
+              :original-value="picture.orientation"
               :readonly="true"/>
         </ul>
       </div>
@@ -226,25 +272,31 @@ const longitude = computed({
         <ul class="attributes-list list-none p-0 m-0">
           <DateEditableProp
               :title="'Creation Date'"
-              v-model="picture.creation_date"
+              v-model="editedPicture.creation_date"
+              :original-value="picture.creation_date"
               :nullable="false"
           />
           <DateEditableProp
               :title="'Edition Date'"
-              v-model="picture.edition_date"
+              v-model="editedPicture.edition_date"
+              :original-value="picture.edition_date"
               :nullable="false"
           />
           <LocationEditableProp
               :title="'Location'"
               v-model:latitude="latitude"
               v-model:longitude="longitude"
-              v-model:altitude="picture.altitude"
+              v-model:altitude="editedPicture.altitude"
+              :original-latitude="original_latitude"
+              :original-longitude="original_longitude"
+              :original-altitude="picture.altitude"
               @save="savePicture"
               :show-altitude="false"
           />
           <NumberEditableProp
               title="Altitude"
-              v-model="picture.altitude"
+              v-model="editedPicture.altitude"
+              :original-value="picture.altitude"
               @save="savePicture"
               :suffix="' m'"
               :min="-1000"
@@ -252,22 +304,26 @@ const longitude = computed({
           />
           <TextEditableProp
               title="Camera Brand"
-              v-model="picture.camera_brand"
+              v-model="editedPicture.camera_brand"
+              :original-value="picture.camera_brand"
               @save="savePicture"
               :min-length="1"
               :max-length="32"
           />
           <TextEditableProp
               title="Camera Model"
-              v-model="picture.camera_model"
+              v-model="editedPicture.camera_model"
+              :original-value="picture.camera_model"
               @save="savePicture"
               :min-length="1"
               :max-length="32"
           />
           <FractionEditableProp
               title="Exposure Time"
-              v-model:numerator="picture.exposure_time_num"
-              v-model:denominator="picture.exposure_time_den"
+              v-model:numerator="editedPicture.exposure_time_num"
+              v-model:denominator="editedPicture.exposure_time_den"
+              :original-numerator="picture.exposure_time_num"
+              :original-denominator="picture.exposure_time_den"
               :min-numerator="1"
               :max-numerator="100000"
               :min-denominator="1"
@@ -276,7 +332,8 @@ const longitude = computed({
           />
           <NumberEditableProp
               title="ISO"
-              v-model="picture.iso_speed"
+              v-model="editedPicture.iso_speed"
+              :original-value="picture.iso_speed"
               @save="savePicture"
               :min="50"
               :max="25600"
@@ -285,6 +342,7 @@ const longitude = computed({
           <NumberEditableProp
               title="Focal Length"
               v-model="focal_length"
+              :original-value="original_focal_length"
               @save="savePicture"
               :suffix="' mm'"
               :min="1"
@@ -296,6 +354,7 @@ const longitude = computed({
           <NumberEditableProp
               title="Aperture"
               v-model="f_number"
+              :original-value="original_f_number"
               @save="savePicture"
               :min-fraction-digits="1"
               :max-fraction-digits="2"

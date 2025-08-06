@@ -14,6 +14,14 @@ const props = defineProps({
     type: [Number, null],
     default: null
   },
+  originalNumerator: {
+    type: [Number, null],
+    default: null
+  },
+  originalDenominator: {
+    type: [Number, null],
+    default: null
+  },
   title: {
     type: String,
   },
@@ -61,6 +69,9 @@ const emit = defineEmits<{
 const numerator = ref(props.numerator);
 const denominator = ref(props.denominator);
 
+const edited = computed(() => {
+  return props.numerator !== numerator.value || props.denominator !== denominator.value;
+})
 
 watch(() => props.numerator, (val) => {
   numerator.value = val;
@@ -86,6 +97,11 @@ const cancel = () => {
   numerator.value = props.numerator;
   denominator.value = props.denominator;
 };
+const reset = () => {
+  numerator.value = props.originalNumerator;
+  denominator.value = props.originalDenominator;
+  save()
+};
 
 const displayValue = computed(() => {
   if (props.numerator === null || props.denominator === null) {
@@ -94,18 +110,12 @@ const displayValue = computed(() => {
   return `${props.numerator} / ${props.denominator}`;
 });
 
-const fraction = computed(() => {
-  return {
-    numerator: numerator.value,
-    denominator: denominator.value
-  }
-});
-
 </script>
 
 <template>
   <BaseEditableProp
       :value="displayValue"
+      :edited="edited"
       :prefix="prefix"
       :suffix="suffix"
       :title="title"
@@ -143,7 +153,7 @@ const fraction = computed(() => {
             @keydown.esc="cancel"
         />
         <InputGroupAddon class="flex-0 min-w-8">
-          <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
+          <Button @click="reset" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
         </InputGroupAddon>
       </InputGroup>
     </template>

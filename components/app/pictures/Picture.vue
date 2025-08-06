@@ -6,13 +6,16 @@ const props = defineProps(['picture', 'visible', 'loading'])
 
 const emit = defineEmits(['update:loading']);
 
+const imageUrl = ref<string | null>(null);
+
 watchEffect(() => {
   if (props.picture && props.loading && props.visible) {
     getApi<Blob>('/picture/' + props.picture.id + '/medium')
         .then(response => {
           if (response && props.visible) {
             emit('update:loading', false);
-            thumbStyle["background-image"] = `url(${URL.createObjectURL(response)})`
+            imageUrl.value = URL.createObjectURL(response);
+            thumbStyle["background-image"] = `url('${imageUrl.value}')`;
           }
         })
         .catch((error: ApiError | null) => {
@@ -32,6 +35,12 @@ watch(props, () => {
   let w = h * props.picture.width / props.picture.height;
   thumbStyle["aspect-ratio"] = w + '/' + h
 }, { immediate: true})
+
+onUnmounted(() => {
+  if (imageUrl.value) {
+    URL.revokeObjectURL(imageUrl.value);
+  }
+});
 
 </script>
 

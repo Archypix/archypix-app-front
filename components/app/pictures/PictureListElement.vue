@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {useElementVisibility} from '@vueuse/core'
+import type {ListPictureData} from "~/types/pictures";
 
 const props = defineProps<{
   picture: ListPictureData,

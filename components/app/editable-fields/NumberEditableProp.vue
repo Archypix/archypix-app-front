@@ -4,7 +4,11 @@ import Button from "primevue/button";
 
 const props = defineProps({
   modelValue: {
-    type: [Number, null],
+    type: [Number, null, undefined],
+    default: null,
+  },
+  originalValue: {
+    type: [Number, null, undefined],
     default: null,
   },
   title: {
@@ -65,16 +69,25 @@ const save = () => {
   }
 };
 
+const cancel = () => {
+  value.value = props.modelValue;
+};
+const reset = () => {
+  value.value = props.originalValue;
+  save()
+};
+
 </script>
 
 <template>
   <BaseEditableProp
       :value="value"
+      :edited="originalValue !== modelValue"
       :title="title"
       :prefix="prefix"
       :suffix="suffix"
       @save="save"
-      @cancel="value = props.modelValue"
+      @cancel="cancel"
   >
     <template #input="{ save, cancel }">
       <InputGroup class="rounded-xs">
@@ -97,7 +110,7 @@ const save = () => {
             @keydown.esc="cancel"
         />
         <InputGroupAddon class="flex-0 min-w-8">
-          <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
+          <Button @click="reset" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
         </InputGroupAddon>
       </InputGroup>
     </template>

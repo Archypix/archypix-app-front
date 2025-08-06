@@ -1,11 +1,16 @@
 <script setup lang="ts">
 
 import Button from "primevue/button";
+import BaseEditableProp from "~/components/app/editable-fields/BaseEditableProp.vue";
 
 const props = defineProps({
   modelValue: {
     type: [String, null, undefined],
     default: null
+  },
+  originalValue: {
+    type: [String, null, undefined],
+    default: null,
   },
   title: {
     type: String,
@@ -52,15 +57,23 @@ const save = () => {
   }
 };
 
+const cancel = () => {
+  value.value = props.modelValue;
+}
+const reset = () => {
+  value.value = props.originalValue;
+  save()
+};
 
 </script>
 
 <template>
   <BaseEditableProp
       :value="value"
+      :edited="originalValue !== modelValue"
       :title="title"
       @save="save"
-      @cancel="value = props.modelValue"
+      @cancel="cancel"
   >
     <template #input="{ save, cancel }">
       <InputGroup class="rounded-xs">
@@ -72,7 +85,7 @@ const save = () => {
             @keydown.esc="cancel"
         />
         <InputGroupAddon class="flex-0 min-w-8">
-          <Button @click="cancel" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
+          <Button @click="reset" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
         </InputGroupAddon>
       </InputGroup>
     </template>

@@ -7,12 +7,16 @@ import {formatDateToLocalISO, formatDateToTimeString} from "~/composables/format
 
 const props = defineProps({
   modelValue: {
-    type: [String, null, undefined],
+    type: [String, null],
     default: null,
   },
   originalValue: {
-    type: [String, null, undefined],
+    type: [String, null],
     default: null,
+  },
+  isMixed: {
+    type: Boolean,
+    default: false
   },
   title: {
     type: String,
@@ -72,8 +76,7 @@ const reset = () => {
 };
 
 const displayValue = computed(() => {
-  if (props.modelValue === null) return '∅';
-  if (props.modelValue === undefined) return 'mixed';
+  if (props.modelValue == null) return null;
   return formatDateToTimeString(props.modelValue, props.showTime, props.showSeconds);
 });
 
@@ -84,6 +87,7 @@ const autoBlur = ref(true);
 <template>
   <BaseEditableProp
     :value="displayValue"
+    :isMixed="isMixed"
     :edited="originalValue !== modelValue"
     :title="title"
     :auto-blur="autoBlur"

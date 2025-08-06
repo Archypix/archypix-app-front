@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue';
-import { useFocusWithin } from '@vueuse/core';
 import BaseEditableProp from './BaseEditableProp.vue';
 import InputNumber from 'primevue/inputnumber';
 import Button from "primevue/button";
@@ -21,6 +20,10 @@ const props = defineProps({
   originalDenominator: {
     type: [Number, null],
     default: null
+  },
+  isMixed: {
+    type: Boolean,
+    default: false
   },
   title: {
     type: String,
@@ -104,8 +107,11 @@ const reset = () => {
 };
 
 const displayValue = computed(() => {
-  if (props.numerator === null || props.denominator === null) {
-    return null;
+  if (props.numerator == null) {
+    return props.numerator; // Can be undefined
+  }
+  if (props.denominator == null) {
+    return props.denominator; // Can be undefined
   }
   return `${props.numerator} / ${props.denominator}`;
 });
@@ -115,6 +121,7 @@ const displayValue = computed(() => {
 <template>
   <BaseEditableProp
       :value="displayValue"
+      :isMixed="isMixed"
       :edited="edited"
       :prefix="prefix"
       :suffix="suffix"

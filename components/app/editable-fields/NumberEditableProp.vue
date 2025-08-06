@@ -1,15 +1,20 @@
 <script setup lang="ts">
 
 import Button from "primevue/button";
+import BaseEditableProp from "~/components/app/editable-fields/BaseEditableProp.vue";
 
 const props = defineProps({
   modelValue: {
-    type: [Number, null, undefined],
+    type: [Number, null],
     default: null,
   },
   originalValue: {
-    type: [Number, null, undefined],
+    type: [Number, null],
     default: null,
+  },
+  isMixed: {
+    type: Boolean,
+    default: false
   },
   title: {
     type: String,
@@ -82,6 +87,7 @@ const reset = () => {
 <template>
   <BaseEditableProp
       :value="value"
+      :isMixed="isMixed"
       :edited="originalValue !== modelValue"
       :title="title"
       :prefix="prefix"

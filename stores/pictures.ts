@@ -67,11 +67,20 @@ export const usePicturesStore = defineStore('pictures', () => {
         const picture_id_index = pictures.value.findIndex(p => p.id == picture_id);
         const min_index = Math.min(selected_picture_index, picture_id_index);
         const max_index = Math.max(selected_picture_index, picture_id_index);
+        const should_reverse = picture_id_index < selected_picture_index;
+
+        let new_pictures = pictures.value.slice(min_index, max_index + 1).map(p => p.id);
+        if (should_reverse) {
+            // Reverse array to keep newly selected pictures at the end
+            new_pictures.reverse();
+        }
 
         // Unselect any pictures in the selected list till reaching selected_picture (any selected picture with this function)
+        const selected_picture_index_in_selected = selected_picture.value ? selected_pictures.value.indexOf(selected_picture.value) : undefined;
         selected_pictures.value = selected_pictures.value
-            .slice(0, selected_picture_index)
-            .concat(pictures.value.slice(min_index, max_index + 1).map(p => p.id))
+            .slice(0, selected_picture_index_in_selected)
+            .concat(new_pictures);
+
     }
     const select_all = () => {
         selected_pictures.value = pictures.value.map(p => p.id)

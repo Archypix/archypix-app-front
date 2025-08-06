@@ -209,7 +209,8 @@ const optionsMenuModel = computed(() => {
     <!-- Tags Filter -->
     <div v-if="selectedFilterType === 'IncludeTags'" class="filter-content">
       <TagSelector
-          :pictureTags="selectedTags"
+          :commonTags="selectedTags"
+          :mixedTags="[]"
           :asCombo="true"
           @update="updateTags"
       />

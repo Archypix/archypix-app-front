@@ -3,8 +3,12 @@ import {computed, ref} from 'vue';
 
 const props = defineProps({
   value: {
-    type: [String, Number, null, undefined],
+    type: [String, Number, null],
     default: null
+  },
+  isMixed: {
+    type: Boolean,
+    default: false
   },
   edited: {
     type: Boolean,
@@ -36,8 +40,8 @@ const emit = defineEmits(['save', 'cancel']);
 const isEditing = ref(false);
 
 const displayValue = computed(() => {
-  if (props.value === null) return '∅';
-  if (props.value === undefined) return 'mixed';
+  if (props.isMixed) return 'mixed';
+  if (props.value == null) return '∅';
   return props.value;
 });
 
@@ -79,7 +83,6 @@ const liRef = ref<HTMLElement | null>(null);
 
 onClickOutside(liRef, () => {
   if (isEditing.value && props.autoBlur) {
-    console.log("Clicked outside, saving...");
     save();
   }
 });
@@ -100,7 +103,7 @@ onClickOutside(liRef, () => {
       <div v-if="edited" class="point-div"/>
     </span>
     <div class="flex-1 min-w-0 rounded py-0.5 px-2" :style="[isEditing ? 'display: none;' : '']">
-      <span :class="{ 'text-gray-500': value === null || value === undefined }">
+      <span :class="{ 'text-gray-500': value == null }">
         <span class="text-gray-500">{{ prefix }}</span>{{ displayValue }}<span class="text-gray-500">{{ suffix }}</span>
       </span>
     </div>

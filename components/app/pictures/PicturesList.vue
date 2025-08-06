@@ -18,6 +18,8 @@ const click_picture = (e: MouseEvent, picture: ListPictureData) => {
 </script>
 
 <template>
+  {{pictures_store.selected_picture}}
+  {{pictures_store.selected_pictures}}
   <ul>
     <PictureListElement v-for="data in pictures_store.pictures"
                         @click="e => click_picture(e, data)"

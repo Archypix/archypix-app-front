@@ -5,12 +5,16 @@ import BaseEditableProp from "~/components/app/editable-fields/BaseEditableProp.
 
 const props = defineProps({
   modelValue: {
-    type: [String, null, undefined],
+    type: [String, null],
     default: null
   },
   originalValue: {
-    type: [String, null, undefined],
+    type: [String, null],
     default: null,
+  },
+  isMixed: {
+    type: Boolean,
+    default: false
   },
   title: {
     type: String,
@@ -70,6 +74,7 @@ const reset = () => {
 <template>
   <BaseEditableProp
       :value="value"
+      :isMixed="isMixed"
       :edited="originalValue !== modelValue"
       :title="title"
       @save="save"

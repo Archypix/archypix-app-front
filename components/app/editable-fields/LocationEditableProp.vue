@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import {formatLat, formatLong} from "~/composables/formatUtils";
+import BaseEditableProp from "~/components/app/editable-fields/BaseEditableProp.vue";
 
 const props = defineProps({
   latitude: {
@@ -26,6 +27,10 @@ const props = defineProps({
   originalAltitude: {
     type: [Number, null],
     default: null,
+  },
+  isMixed: {
+    type: Boolean,
+    default: false
   },
   title: {
     type: String,
@@ -159,6 +164,7 @@ function reset() {
 <template>
   <BaseEditableProp
       :value="displayValue"
+      :isMixed="isMixed"
       :edited="edited"
       :title="title"
       @save="save"

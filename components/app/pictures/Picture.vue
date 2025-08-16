@@ -9,7 +9,7 @@ const emit = defineEmits(['update:loading']);
 const imageUrl = ref<string | null>(null);
 
 watchEffect(() => {
-  if (props.picture && props.loading && props.visible) {
+  if (props.picture?.id && props.loading && props.visible) {
     getApi<Blob>('/picture/' + props.picture.id + '/medium')
         .then(response => {
           if (response && props.visible) {

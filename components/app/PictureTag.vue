@@ -5,7 +5,8 @@ const props = defineProps<{
   tag?: Tag | null, // If tag is omitted, only tag group is shown
   tag_group: TagGroup,
   tag_only?: boolean | null,
-  picture_id?: number | null // If picture_id is provided, the user will be able to untag the picture
+  picture_id?: number | null, // If picture_id is provided, the user will be able to untag the picture
+  dimmed?: boolean,
 }>();
 
 const emit = defineEmits<{
@@ -37,6 +38,7 @@ const handleRemoveTag = async () => {
            'tag-group-multiple': props.tag_group.multiple,
            'tag-default': props.tag?.is_default,
            'tag-only': props.tag_only,
+           'dimmed': props.dimmed,
          }"
        @mouseenter="isHovering = !!picture_id && !!tag"
        @mouseleave="isHovering = false">
@@ -82,6 +84,9 @@ const handleRemoveTag = async () => {
 
   &.tag-group-multiple
     border-radius .3em
+
+  &.dimmed
+    opacity 0.5
 
   // Padding
 
@@ -150,8 +155,10 @@ const handleRemoveTag = async () => {
     i
       color var(--p-slate-50)
       opacity 0.8
+
       &:hover
         opacity 1
+
       &:disabled
         cursor not-allowed
         opacity 0.5

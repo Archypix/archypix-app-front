@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue';
-import {type TagGroupWithTags, useTagsStore} from '~/stores/tags';
-import {type Tag, type TagGroup} from '~/stores/tags';
+import {type Tag, type TagGroup, type TagGroupWithTags, useTagsStore} from '~/stores/tags';
 import type {TreeExpandedKeys} from "primevue/tree";
 
 const props = defineProps<{
@@ -16,7 +15,9 @@ const emit = defineEmits<{
 
 
 const tagsStore = useTagsStore();
-const selectedTags = ref<Record<number, { checked: boolean; partialChecked: boolean }>>({});
+type SelectedRecord = Record<number, SelectedRecordEl>;
+type SelectedRecordEl = { checked: boolean; partialChecked: boolean };
+const selectedTags = ref<SelectedRecord>({});
 const treeNodes = ref<TagGroupTreeNode[]>([]);
 const loading = ref(true);
 const expandedKeys = ref<TreeExpandedKeys>({});
@@ -24,6 +25,23 @@ const isOpen = ref(false);
 
 const currentTags = computed<{ tag: Tag; tag_group: TagGroup }[]>(() => {
   return props.commonTags
+      .map(tagId => {
+        for (const tg of tagsStore.all_tags) {
+          const tag = tg.tags.find(t => t.id === tagId);
+          if (tag) {
+            return {tag, tag_group: tg.tag_group};
+          }
+        }
+      })
+      .filter(Boolean)
+      .filter((tag) => tag !== undefined)
+      .sort((a, b) => a.tag_group.name.localeCompare(b.tag_group.name) || a.tag.name.localeCompare(b.tag.name)) as {
+    tag: Tag;
+    tag_group: TagGroup
+  }[];
+});
+const currentMixedTags = computed<{ tag: Tag; tag_group: TagGroup }[]>(() => {
+  return props.mixedTags
       .map(tagId => {
         for (const tg of tagsStore.all_tags) {
           const tag = tg.tags.find(t => t.id === tagId);
@@ -63,6 +81,7 @@ interface TagGroupTreeNode {
   tag_group: TagGroup;
   children: TagTreeNode[];
 }
+
 interface TagTreeNode {
   key: string;
   label: string;
@@ -72,6 +91,7 @@ interface TagTreeNode {
   // tag_group: TagGroup;
   styleClass: string;
 }
+
 // type TreeNode = TagGroupTreeNode | TagTreeNode;
 
 // Convert tag groups and tags to TreeSelect nodes format
@@ -103,21 +123,79 @@ watch(tagsStore, async () => {
   loading.value = false;
 }, {immediate: true});
 
-
-const handleNodeSelect = (value: string[]) => {
+const old_selected_with_partial = ref<number[]>(props.commonTags.concat(props.mixedTags));
+const handleNodeSelect = async () => {
   // If the tag group is not multiple, remove any other selected tag from the same group
-  console.log('Selected tags:', value);
+  const new_selected_with_partial = Object.entries(selectedTags.value)
+      .filter(([_, value]) => value.checked || value.partialChecked)
+      .map(([key, _value]) => Number(key))
+      .filter(tagId => !isNaN(tagId));
+
+  const newlySelectedTags = new_selected_with_partial.filter(tagId => !old_selected_with_partial.value.includes(tagId));
+  for (const tagId of newlySelectedTags) {
+    let group = await tagsStore.getTagGroupFromTagId(tagId)
+    if (!group) {
+      return;
+    }
+    // If tag is not multiple, remove all other selected or mixed tags from the same group
+    if (!group.tag_group.multiple) {
+      group.tags.forEach(otherTag => {
+        if (otherTag.id !== tagId && (selectedTags.value[otherTag.id]?.checked || selectedTags.value[otherTag.id]?.partialChecked)) {
+          delete selectedTags.value[otherTag.id];
+        }
+      });
+    }
+  }
+
+  const newlyUnselectedTags = old_selected_with_partial.value.filter(tagId => !new_selected_with_partial.includes(tagId));
+  for (const tagId of newlyUnselectedTags) {
+    let group = await tagsStore.getTagGroupFromTagId(tagId)
+    if (!group) {
+      return;
+    }
+    // If tag is required, select the default tag from the group
+    if (group.tag_group.required) {
+      let selected_count = 0; // Counts the partial checks. The user might select 0 tags for some pictures, but the backend will always select the default tag correctly.
+      let defaultTagId: number | null = null;
+      group.tags.forEach(otherTag => {
+        if (selectedTags.value[otherTag.id]?.checked || selectedTags.value[otherTag.id]?.partialChecked) {
+          selected_count++;
+        }
+        if (otherTag.id !== tagId && (defaultTagId === null || otherTag.is_default)) {
+          defaultTagId = otherTag.id;
+        }
+      });
+      if (selected_count === 0 && defaultTagId !== null) {
+        selectedTags.value[defaultTagId] = {checked: true, partialChecked: false};
+      }
+    }
+  }
+
+
+  old_selected_with_partial.value = Object.entries(selectedTags.value)
+      .filter(([_, value]) => value.checked || value.partialChecked)
+      .map(([key, _value]) => Number(key))
+      .filter(tagId => !isNaN(tagId));
+  selectedTags.value = {...selectedTags.value};
 };
 
 const handleClose = async () => {
-  // Tags that are checked (excluding partial checks)
+  // Tags that are checked excluding partial checks
   const selected = Object.entries(selectedTags.value)
       .filter(([_, value]) => value.checked && !value.partialChecked)
       .map(([key, _value]) => Number(key))
       .filter(tagId => !isNaN(tagId));
 
+  // Tags that are checked including partial checks
+  const selected_with_partial = Object.entries(selectedTags.value)
+      .filter(([_, value]) => value.checked)
+      .map(([key, _value]) => Number(key))
+      .filter(tagId => !isNaN(tagId));
+
   const tagsToAdd = selected.filter(tag => !props.commonTags.includes(tag));
-  const tagsToRemove = props.commonTags.filter(tag => !selected.includes(tag));
+  const tagsToRemove = props.commonTags.filter(tag => !selected_with_partial.includes(tag))
+      .concat(props.mixedTags.filter(tag => !selected_with_partial.includes(tag)));
+
 
   if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
     emit('update', tagsToAdd, tagsToRemove);
@@ -133,7 +211,7 @@ const handleShow = () => {
 };
 
 // Handle node click to expand/collapse tag groups
-const handleNodeClick = (node: TagGroupTreeNode) => {
+const handleGroupClick = (node: TagGroupTreeNode) => {
   if (node.children) {
     expandedKeys.value = {
       ...expandedKeys.value,
@@ -170,13 +248,20 @@ const handleNodeClick = (node: TagGroupTreeNode) => {
             :tag="tag.tag"
             :tag_group="tag.tag_group"
         />
+        <PictureTag
+            v-for="tag in currentMixedTags"
+            :key="tag.tag.id"
+            :tag="tag.tag"
+            :tag_group="tag.tag_group"
+            :dimmed="true"
+        />
       </div>
       <span v-else>{{ slotProps.placeholder }}</span>
     </template>
 
     <template #option="slotProps">
       <!-- Group node -->
-      <div v-if="!slotProps.node.tag" class="tag-group-item" @click="handleNodeClick(slotProps.node as TagGroupTreeNode)">
+      <div v-if="!slotProps.node.tag" class="tag-group-item" @click="handleGroupClick(slotProps.node as TagGroupTreeNode)">
         <PictureTag
             :tag_group="slotProps.node.tag_group"
         />

@@ -213,6 +213,18 @@ export const useTagsStore = defineStore('tags', () => {
         return null;
     }
 
+    const getTagGroupFromTagId = async (tag_id: number): Promise<TagGroupWithTags | null> => {
+        await tags_loaded_promise;
+        for (const tag_group of all_tags.value) {
+            for (const tag of tag_group.tags) {
+                if (tag.id === tag_id) {
+                    return tag_group;
+                }
+            }
+        }
+        return null;
+    }
+
     return {
         all_tags,
         tags_loaded_promise,
@@ -222,6 +234,8 @@ export const useTagsStore = defineStore('tags', () => {
         deleteTagGroup,
         // Picture tag functions
         editPicturesTags,
+        // Utils functions
+        getTagGroupFromTagId,
         // Conversion functions
         tagIdToTagName,
         tagGroupIdToTagGroupName,

@@ -192,6 +192,13 @@ const longitude = computed({
     editedPicture.value.longitude = value?.toFixed(6) || null;
   }
 })
+const altitude = computed({
+  get: () => editedPicture.value?.altitude ? editedPicture.value.altitude ?? null : null,
+  set: (value: number | null) => {
+    if (!editedPicture.value) return;
+    editedPicture.value.altitude = value != null ? value : null;
+  }
+})
 
 const pictureWidth = computed(() => {
   if (!editedPicture.value || !editedPicture.value.width || !editedPicture.value.height) return "";
@@ -216,7 +223,7 @@ const resolutionDisplayValue = computed(() => {
   <div class="flex flex-col items-stretch p-2 mx-auto font-sans" v-if="picture && editedPicture">
     <div class="flex justify-center w-full">
       <div class="mb-2 grow" :style="pictureWidth">
-        <editedPicture :picture="editedPicture" :visible="true" v-model:loading="pictureLoading"/>
+        <Picture :picture="editedPicture" :visible="true" v-model:loading="pictureLoading"/>
       </div>
     </div>
     <div class="flex flex-col gap-2 p-2">
@@ -308,7 +315,7 @@ const resolutionDisplayValue = computed(() => {
               :title="'Location'"
               v-model:latitude="latitude"
               v-model:longitude="longitude"
-              v-model:altitude="editedPicture.altitude"
+              v-model:altitude="altitude"
               :original-latitude="original_latitude"
               :original-longitude="original_longitude"
               :original-altitude="picture.altitude"

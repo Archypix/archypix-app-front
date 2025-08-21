@@ -5,11 +5,11 @@ import type {ListPictureData} from "~/types/pictures";
 let pictures_store = usePicturesStore()
 
 const click_picture = (e: MouseEvent, picture: ListPictureData) => {
-  if (e.ctrlKey ||e.metaKey) {
+  if (e.ctrlKey || e.metaKey) {
     pictures_store.select_toggle(picture.id)
-  }else if(e.shiftKey) {
+  } else if (e.shiftKey) {
     pictures_store.select_to(picture.id)
-  }else {
+  } else {
     pictures_store.select(picture.id)
   }
 
@@ -18,8 +18,6 @@ const click_picture = (e: MouseEvent, picture: ListPictureData) => {
 </script>
 
 <template>
-  {{pictures_store.selected_picture}}
-  {{pictures_store.selected_pictures}}
   <ul>
     <PictureListElement v-for="data in pictures_store.pictures"
                         @click="e => click_picture(e, data)"

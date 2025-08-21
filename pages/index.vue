@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useStorage } from '@vueuse/core'
+import {useStorage} from '@vueuse/core'
 
 let leftPanelEnabled = useStorage('px_left_panel_enabled', true);
 let rightPanelEnabled = useStorage('px_right_panel_enabled', true);
@@ -20,6 +20,10 @@ definePageMeta({
   layout: 'app'
 })
 
+
+let pictures_cache_store = usePicturesCacheStore()
+let pictures_store = usePicturesStore()
+
 </script>
 
 <template>
@@ -28,6 +32,17 @@ definePageMeta({
         v-model:left-panel-enabled="leftPanelEnabled"
         v-model:right-panel-enabled="rightPanelEnabled"
     />
+
+    <div class="bg-white">
+      <b>Selected:</b> {{ pictures_store.selected_pictures }} (main: {{ pictures_store.selected_picture }})
+      <br>
+      <b>Cache:</b> ({{pictures_cache_store.reactive_loaded_pictures_urls.size}})
+      <span v-for="[k, v] in pictures_cache_store.reactive_loaded_pictures_urls.entries()"
+            :key="k"
+            class="mr-2" display="inline-block" :style="{fontSize: (0.5+0.5*v[2][0]) + 'em'}">
+          {{ k }}
+      </span>
+    </div>
 
     <SidePanels
         v-model:left-panel-visible="leftPanelVisible"

@@ -1,5 +1,3 @@
-// Type definition for pictures query
-
 import type {QueryComponent} from "~/composables/queryStrings";
 import {defineStore} from "pinia";
 import type {ListPictureData, Picture, PicturesQuery} from "~/types/pictures";
@@ -176,6 +174,6 @@ export const usePicturesStore = defineStore('pictures', () => {
         select_toggle,
         select_to,
         select_all,
-        clear_selection
+        clear_selection,
     }
 });

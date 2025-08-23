@@ -12,7 +12,10 @@ const click_picture = (e: MouseEvent, picture: ListPictureData) => {
   } else {
     pictures_store.select(picture.id)
   }
+}
 
+const query_more = () => {
+  pictures_store.query_more()
 }
 
 </script>
@@ -25,6 +28,9 @@ const click_picture = (e: MouseEvent, picture: ListPictureData) => {
                         :selected="pictures_store.selected_pictures.includes(data.id)"
                         :key="data.id"/>
   </ul>
+  <Button @click="query_more" v-if="pictures_store.can_query_more">
+    Load more
+  </Button>
 </template>
 
 <style scoped lang="stylus">

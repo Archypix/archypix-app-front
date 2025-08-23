@@ -16,6 +16,7 @@
     "@primevue/forms": "^4.3.5",
     "@tailwindcss/vite": "^4.1.8",
     "@vueuse/nuxt": "^12.3.0",
+    "blurhash": "^2.0.5",
     "nuxt": "^3.17.4",
     "nuxt-storage": "^1.2.2",
     "pinia": "^3.0.2",

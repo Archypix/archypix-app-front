@@ -85,10 +85,11 @@ export const usePicturesStore = defineStore('pictures', () => {
         selected_picture.value = selected_pictures.value.at(-1) || null
     }
     const query_more = async () => {
-        if (is_config)
-            page.value += 1;
+        page.value += 1;
         await query_components()
     }
+    const page_size = 100;
+    const can_query_more = ref<boolean>(false);
     const query = async (query_str: string, to_names = true) => {
         page.value = 1;
         console.log("Query:", query_str, "Page:", page.value);
@@ -133,6 +134,7 @@ export const usePicturesStore = defineStore('pictures', () => {
     const fetch = async (query: PicturesQuery) => {
         await postApi<PicturesQuery, ListPictureData[]>('/query_pictures', query)
             .then((data: ListPictureData[]) => {
+                can_query_more.value = data.length === page_size;
                 if (query.page == 1)
                     pictures.value = data;
                 else
@@ -165,6 +167,7 @@ export const usePicturesStore = defineStore('pictures', () => {
         page,
         query,
         query_more,
+        can_query_more,
         back,
         is_config,
         config_component,

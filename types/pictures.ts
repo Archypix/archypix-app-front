@@ -33,6 +33,7 @@ export type ListPictureData = {
     name: string,
     width: number,
     height: number,
+    blurhash: string | null,
 }
 
 // Picture data/response types

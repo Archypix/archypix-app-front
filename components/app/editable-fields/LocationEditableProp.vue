@@ -32,6 +32,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  originalIsMixed: {
+    type: Boolean,
+    default: false
+  },
   title: {
     type: String,
   },
@@ -62,7 +66,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:latitude', 'update:longitude', 'update:altitude', 'save']);
+const emit = defineEmits(['update:latitude', 'update:longitude', 'update:altitude', 'update:isMixed', 'save']);
 
 const latitude = ref(props.latitude);
 const longitude = ref(props.longitude);
@@ -76,14 +80,20 @@ watch(() => props.longitude, (val) => {
 watch(() => props.altitude, (val) => {
   altitude.value = val;
 });
+const isEditing = ref(false);
 
 const edited = computed(() => {
   return props.latitude !== props.originalLatitude
       || props.longitude !== props.originalLongitude
-      || (props.showAltitude && props.altitude !== props.originalAltitude);
+      || (props.showAltitude && props.altitude !== props.originalAltitude)
+      || props.isMixed !== props.originalIsMixed;
 })
 
 const save = () => {
+  if (!props.nullable && (latitude.value == null || longitude.value == null || (props.showAltitude && altitude.value == null))) {
+    reset()
+    return;
+  }
   if (latitude.value !== props.latitude) {
     emit('update:latitude', latitude.value);
   }
@@ -140,29 +150,54 @@ function saveLocation() {
   emit('update:latitude', selectedLat.value);
   emit('update:longitude', selectedLng.value);
   showMap.value = false;
+  isEditing.value = false;
   emit('save');
 }
 
 function cancel() {
   showMap.value = false;
+  isEditing.value = false;
   latitude.value = props.latitude ?? null;
   longitude.value = props.longitude ?? null;
   if (props.showAltitude)
     altitude.value = props.altitude ?? null;
 }
+
 function reset() {
+  if (props.originalIsMixed) {
+    latitude.value = undefined;
+    longitude.value = undefined;
+    if (props.showAltitude)
+      altitude.value = undefined;
+  } else {
+    latitude.value = props.originalLatitude ?? null;
+    longitude.value = props.originalLongitude ?? null;
+    if (props.showAltitude)
+      altitude.value = props.originalAltitude ?? null;
+  }
   showMap.value = false;
-  latitude.value = props.originalLatitude ?? null;
-  longitude.value = props.originalLongitude ?? null;
-  if (props.showAltitude)
-    altitude.value = props.originalAltitude ?? null;
+  isEditing.value = false;
   save()
+}
+
+function clear() {
+  showMap.value = false;
+  isEditing.value = false;
+  latitude.value = null;
+  longitude.value = null;
+  emit('update:latitude', null);
+  emit('update:longitude', null);
+  if (props.showAltitude)
+    altitude.value = null;
+  emit('update:altitude', null);
+  emit('save');
 }
 
 </script>
 
 <template>
   <BaseEditableProp
+      v-model:is-editing="isEditing"
       :value="displayValue"
       :isMixed="isMixed"
       :edited="edited"
@@ -242,6 +277,7 @@ function reset() {
         <div class="flex gap-2">
           <Button label="Reset" text severity="danger" @click="reset"/>
           <Button label="Cancel" text severity="danger" @click="cancel"/>
+          <Button label="Clear" text severity="danger" @click="clear" v-if="nullable"/>
         </div>
         <div class="flex justify-content-end gap-5">
           <Button label="Use Current Location" icon="pi pi-map-marker" severity="secondary" @click="useCurrentLocation"/>

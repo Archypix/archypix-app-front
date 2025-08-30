@@ -6,6 +6,10 @@ const props = defineProps({
     type: [String, Number, null],
     default: null
   },
+  isEditing: {
+    type: Boolean,
+    default: false
+  },
   isMixed: {
     type: Boolean,
     default: false
@@ -35,9 +39,8 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['save', 'cancel']);
+const emit = defineEmits(['save', 'cancel', 'update:isEditing']);
 
-const isEditing = ref(false);
 
 const displayValue = computed(() => {
   if (props.isMixed) return 'mixed';
@@ -48,12 +51,12 @@ const displayValue = computed(() => {
 const slotDivRef = ref<HTMLElement | null>(null);
 
 function down() {
-  if (props.readonly || isEditing.value) return;
+  if (props.readonly || props.isEditing) return;
 }
 
 function up(e: MouseEvent) {
-  if (props.readonly || isEditing.value) return;
-  isEditing.value = true;
+  if (props.readonly || props.isEditing) return;
+  emit('update:isEditing', true);
   nextTick(() => {
     if (slotDivRef.value)
       focusFirstChild(slotDivRef.value);
@@ -62,12 +65,13 @@ function up(e: MouseEvent) {
 
 function save() {
   emit('save');
-  isEditing.value = false;
+  emit('update:isEditing', false);
 }
 
 function cancel() {
   emit('cancel');
-  isEditing.value = false;
+  emit('update:isEditing', false);
+
 }
 
 function focusFirstChild(div: HTMLElement) {
@@ -82,7 +86,7 @@ function focusFirstChild(div: HTMLElement) {
 const liRef = ref<HTMLElement | null>(null);
 
 onClickOutside(liRef, () => {
-  if (isEditing.value && props.autoBlur) {
+  if (props.isEditing && props.autoBlur) {
     save();
   }
 });

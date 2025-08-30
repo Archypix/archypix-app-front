@@ -100,6 +100,13 @@ watch(userRating, () => {
   rating.value = userRating.value || undefined;
 })
 
+watch(picture, () => {
+  // As the default numerator of exposure time is 1, in the original picture, it must be set to 1 if it is null for edited status to work correctly.
+  if (picture.value && picture.value.exposure_time_num === null) {
+    picture.value.exposure_time_num = 1;
+  }
+})
+
 const showTagSelector = ref(false);
 const tagSelectorPosition = ref({x: 0, y: 0});
 
@@ -151,6 +158,90 @@ watch(tagsStore, async () => {
   await fetchPictureDetails();
 }, {immediate: false});
 
+
+const creation_date_is_mixed = computed({
+  get: () => editedPicture.value?.creation_date === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.creation_date = undefined;
+    }
+  }
+});
+const edition_date_is_mixed = computed({
+  get: () => editedPicture.value?.edition_date === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.edition_date = undefined;
+    }
+  }
+});
+
+const location_is_mixed = computed({
+  get: () => editedPicture.value?.latitude === undefined || editedPicture.value?.longitude === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.latitude = undefined;
+      editedPicture.value.longitude = undefined;
+    }
+  }
+});
+const altitude_is_mixed = computed({
+  get: () => editedPicture.value?.altitude === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.altitude = undefined;
+    }
+  }
+});
+const camera_brand_is_mixed = computed({
+  get: () => editedPicture.value?.camera_brand === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.camera_brand = undefined;
+    }
+  }
+});
+const camera_model_is_mixed = computed({
+  get: () => editedPicture.value?.camera_model === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.camera_model = undefined;
+    }
+  }
+});
+const exposure_time_is_mixed = computed({
+  get: () => editedPicture.value?.exposure_time_num === undefined || editedPicture.value?.exposure_time_den === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.exposure_time_num = undefined;
+      editedPicture.value.exposure_time_den = undefined;
+    }
+  }
+});
+const iso_speed_is_mixed = computed({
+  get: () => editedPicture.value?.iso_speed === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.iso_speed = undefined;
+    }
+  }
+});
+const focal_length_is_mixed = computed({
+  get: () => editedPicture.value?.focal_length === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.focal_length = undefined;
+    }
+  }
+});
+const f_number_is_mixed = computed({
+  get: () => editedPicture.value?.f_number === undefined,
+  set: (value: boolean) => {
+    if (value && editedPicture.value) {
+      editedPicture.value.f_number = undefined;
+    }
+  }
+});
 
 const original_focal_length = computed(() => {
   return picture.value?.focal_length ? parseFloat(picture.value.focal_length) ?? null : null;
@@ -216,6 +307,17 @@ const resolutionDisplayValue = computed(() => {
     return picture.value.width + ' × ' + picture.value.height;
   }
 })
+
+const exposure_time_num = computed({
+  get: () => {
+    // As the default numerator of exposure time is 1, set it to 1 if null for consistency
+    return editedPicture.value?.exposure_time_num ?? 1;
+  },
+  set: (value: number | null) => {
+    if (!editedPicture.value) return;
+    editedPicture.value.exposure_time_num = value;
+  }
+});
 
 </script>
 
@@ -300,15 +402,17 @@ const resolutionDisplayValue = computed(() => {
           <DateEditableProp
               :title="'Creation Date'"
               v-model="editedPicture.creation_date"
+              v-model:is-mixed="creation_date_is_mixed"
+              :original-is-mixed="picture.creation_date === undefined"
               :original-value="picture.creation_date"
-              :is-mixed="editedPicture.creation_date === undefined"
               :nullable="false"
           />
           <DateEditableProp
               :title="'Edition Date'"
               v-model="editedPicture.edition_date"
               :original-value="picture.edition_date"
-              :is-mixed="editedPicture.edition_date === undefined"
+              v-model:is-mixed="edition_date_is_mixed"
+              :original-is-mixed="picture.creation_date === undefined"
               :nullable="false"
           />
           <LocationEditableProp
@@ -319,15 +423,17 @@ const resolutionDisplayValue = computed(() => {
               :original-latitude="original_latitude"
               :original-longitude="original_longitude"
               :original-altitude="picture.altitude"
-              :is-mixed="editedPicture.latitude === undefined || editedPicture.longitude === undefined"
+              :original-is-mixed="picture.latitude === undefined || picture.longitude === undefined"
+              v-model:is-mixed="location_is_mixed"
               @save="savePicture"
               :show-altitude="false"
           />
           <NumberEditableProp
               title="Altitude"
               v-model="editedPicture.altitude"
+              v-model:is-mixed="altitude_is_mixed"
               :original-value="picture.altitude"
-              :is-mixed="editedPicture.altitude === undefined"
+              :original-is-mixed="picture.altitude === undefined"
               @save="savePicture"
               :suffix="' m'"
               :min="-1000"
@@ -336,8 +442,9 @@ const resolutionDisplayValue = computed(() => {
           <TextEditableProp
               title="Camera Brand"
               v-model="editedPicture.camera_brand"
+              v-model:is-mixed="camera_brand_is_mixed"
               :original-value="picture.camera_brand"
-              :is-mixed="editedPicture.camera_brand === undefined"
+              :original-is-mixed="picture.camera_brand === undefined"
               @save="savePicture"
               :min-length="1"
               :max-length="32"
@@ -345,19 +452,22 @@ const resolutionDisplayValue = computed(() => {
           <TextEditableProp
               title="Camera Model"
               v-model="editedPicture.camera_model"
+              v-model:is-mixed="camera_model_is_mixed"
               :original-value="picture.camera_model"
-              :is-mixed="editedPicture.camera_model === undefined"
+              :original-is-mixed="picture.camera_model === undefined"
               @save="savePicture"
               :min-length="1"
               :max-length="32"
           />
           <FractionEditableProp
               title="Exposure Time"
-              v-model:numerator="editedPicture.exposure_time_num"
+              :default-numerator="1"
+              v-model:numerator="exposure_time_num"
               v-model:denominator="editedPicture.exposure_time_den"
+              v-model:is-mixed="exposure_time_is_mixed"
               :original-numerator="picture.exposure_time_num"
               :original-denominator="picture.exposure_time_den"
-              :is-mixed="editedPicture.exposure_time_num === undefined || editedPicture.exposure_time_den === undefined"
+              :original-is-mixed="picture.exposure_time_num === undefined || picture.exposure_time_den === undefined"
               :min-numerator="1"
               :max-numerator="100000"
               :min-denominator="1"
@@ -367,18 +477,20 @@ const resolutionDisplayValue = computed(() => {
           <NumberEditableProp
               title="ISO"
               v-model="editedPicture.iso_speed"
+              v-model:is-mixed="iso_speed_is_mixed"
               :original-value="picture.iso_speed"
-              :is-mixed="editedPicture.iso_speed === undefined"
+              :original-is-mixed="picture.iso_speed === undefined"
               @save="savePicture"
-              :min="50"
+              :min="10"
               :max="25600"
               :step="50"
           />
           <NumberEditableProp
               title="Focal Length"
               v-model="focal_length"
+              v-model:is-mixed="focal_length_is_mixed"
               :original-value="original_focal_length"
-              :is-mixed="editedPicture.focal_length === undefined"
+              :original-is-mixed="picture.focal_length === undefined"
               @save="savePicture"
               :suffix="' mm'"
               :min="1"
@@ -390,8 +502,9 @@ const resolutionDisplayValue = computed(() => {
           <NumberEditableProp
               title="Aperture"
               v-model="f_number"
+              v-model:is-mixed="f_number_is_mixed"
               :original-value="original_f_number"
-              :is-mixed="editedPicture.f_number === undefined"
+              :original-is-mixed="picture.f_number === undefined"
               @save="savePicture"
               :min-fraction-digits="1"
               :max-fraction-digits="2"

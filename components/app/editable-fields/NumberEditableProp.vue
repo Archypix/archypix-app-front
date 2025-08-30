@@ -16,6 +16,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  originalIsMixed: {
+    type: Boolean,
+    default: false
+  },
   title: {
     type: String,
   },
@@ -59,16 +63,18 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:modelValue', 'save']);
+const emit = defineEmits(['update:modelValue', 'update:isMixed', 'save']);
 
-const value = ref(props.modelValue);
+const value = ref(null);
+const isEditing = ref(false);
 
 watch(() => props.modelValue, (val) => {
-  value.value = val;
-});
+  value.value = props.isMixed ? undefined : val;
+}, {immediate: true});
 
 const save = () => {
   if (value.value !== props.modelValue) {
+    console.log('Saving value:', value.value);
     emit('update:modelValue', value.value);
     emit('save');
   }
@@ -78,17 +84,32 @@ const cancel = () => {
   value.value = props.modelValue;
 };
 const reset = () => {
-  value.value = props.originalValue;
-  save()
+  if (props.originalIsMixed) {
+    value.value = undefined;
+    emit('update:isMixed', true);
+  } else {
+    value.value = props.originalValue;
+    emit('update:modelValue', value.value);
+  }
+  emit('save');
+  isEditing.value = false;
 };
+const clear = () => {
+  value.value = null;
+  emit('update:modelValue', value.value);
+  emit('save');
+  isEditing.value = false;
+};
+
 
 </script>
 
 <template>
   <BaseEditableProp
+      v-model:is-editing="isEditing"
       :value="value"
       :isMixed="isMixed"
-      :edited="originalValue !== modelValue"
+      :edited="originalValue !== modelValue || originalIsMixed !== isMixed"
       :title="title"
       :prefix="prefix"
       :suffix="suffix"
@@ -116,7 +137,9 @@ const reset = () => {
             @keydown.esc="cancel"
         />
         <InputGroupAddon class="flex-0 min-w-8">
-          <Button @click="reset" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
+          <Button @click="clear" icon="pi pi-times" class="px-0 py-0" severity="secondary"
+                  v-if="nullable && value == null && isMixed"/>
+          <Button v-else @click="reset" icon="pi pi-undo" class="px-0 py-0" severity="secondary"/>
         </InputGroupAddon>
       </InputGroup>
     </template>
